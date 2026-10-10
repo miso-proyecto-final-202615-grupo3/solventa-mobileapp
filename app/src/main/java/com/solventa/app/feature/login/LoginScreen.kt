@@ -48,6 +48,7 @@ object LoginTestTags {
 fun LoginRoute(
     viewModel: LoginViewModel,
     onLoggedIn: () -> Unit,
+    onBiometricOffer: () -> Unit,
     onAccountNotFound: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -55,6 +56,7 @@ fun LoginRoute(
     LaunchedEffect(uiState.destination) {
         when (uiState.destination) {
             LoginDestination.HOME -> onLoggedIn()
+            LoginDestination.BIOMETRIC_OFFER -> onBiometricOffer()
             LoginDestination.ACCOUNT_NOT_FOUND -> onAccountNotFound()
             null -> return@LaunchedEffect
         }

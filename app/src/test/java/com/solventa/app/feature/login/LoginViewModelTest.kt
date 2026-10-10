@@ -78,6 +78,17 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `login exitoso con oferta biometrica pendiente navega a la oferta`() {
+        val viewModel = LoginViewModel(repository, sessionStore, shouldOfferBiometric = { true })
+        viewModel.onEmailChange("camila.rojas@correo.com")
+        viewModel.onPasswordChange("secreta")
+
+        viewModel.onSubmit()
+
+        assertEquals(LoginDestination.BIOMETRIC_OFFER, viewModel.uiState.value.destination)
+    }
+
+    @Test
     fun `cuenta inexistente navega a cuenta no encontrada sin guardar sesion`() {
         repository.result = LoginResult.AccountNotFound
         fillValidForm()

@@ -25,5 +25,49 @@
     <!-- Inicio (provisional) -->
     <string name="home_greeting">Hola, %1$s</string>
     <string name="home_pending_activation">Tu sesión está activa. El siguiente paso es activar este teléfono con tu cédula y una prueba de vida.</string>
+    <string name="home_device_linked">Tu teléfono está vinculado a tu cuenta.</string>
+    <string name="home_biometric_hint">Puedes activar el acceso con huella o rostro cuando quieras en Perfil y seguridad.</string>
+    <string name="home_open_security">Perfil y seguridad</string>
     <string name="home_logout">Cerrar sesión</string>
+
+    <!-- Biometría: oferta de activación -->
+    <string name="biometric_offer_section">seguridad</string>
+    <string name="biometric_offer_title">Activa huella o rostro</string>
+    <string name="biometric_offer_body">Así entras a la app sin escribir tu contraseña cada vez. Solventa no guarda tu huella ni tu rostro: los verifica tu teléfono.</string>
+    <string name="biometric_offer_activate">Activar</string>
+    <string name="biometric_offer_not_now">Ahora no</string>
+    <string name="biometric_offer_failed">No pudimos activar el acceso biométrico. Puedes intentarlo después en Perfil y seguridad.</string>
+    <string name="biometric_unavailable_title">Tu teléfono no tiene huella o rostro configurados</string>
+    <string name="biometric_unavailable_body">Puedes configurarlos en los ajustes del teléfono y activarlo después desde Perfil y seguridad.</string>
+    <string name="biometric_use_password">Usar contraseña</string>
+
+    <!-- Biometría: aviso del sistema -->
+    <string name="biometric_prompt_activate_title">Activa el acceso biométrico</string>
+    <string name="biometric_prompt_activate_subtitle">Confirma con tu huella o rostro</string>
+    <string name="biometric_prompt_cancel">Cancelar</string>
+    <string name="biometric_prompt_unlock_title">Confirma que eres tú</string>
+    <string name="biometric_prompt_unlock_subtitle">Usa tu huella o rostro para abrir Solventa</string>
+
+    <!-- Biometría: bloqueo de la app -->
+    <string name="unlock_title">Confirma que eres tú</string>
+    <string name="unlock_body">Usa tu huella o rostro para abrir tus pólizas.</string>
+    <string name="unlock_confirm">Usar huella o rostro</string>
+    <string name="unlock_failed_attempt">Intento %1$d de %2$d</string>
+    <string name="unlock_failed_title">No reconocimos tu huella o rostro</string>
+    <string name="unlock_failed_body">Limpia el sensor y vuelve a intentarlo, o entra con tu contraseña.</string>
+    <string name="unlock_retry">Intentar de nuevo</string>
+    <string name="unlock_locked_title">Bloqueamos la biometría por 5 minutos</string>
+    <string name="unlock_locked_body">Fallaron los 3 intentos. Mientras tanto puedes entrar con tu contraseña.</string>
+    <string name="unlock_locked_countdown_label">Se desbloquea en</string>
+    <string name="unlock_enter_with_password">Entrar con contraseña</string>
+    <string name="unlock_changed_title">Detectamos un cambio en la biometría de tu teléfono</string>
+    <string name="unlock_changed_body">Se agregó o se borró una huella o rostro. Por seguridad desactivamos el acceso biométrico. Entra con tu contraseña para volver a activarlo.</string>
+
+    <!-- Perfil y seguridad -->
+    <string name="security_title">Perfil y seguridad</string>
+    <string name="security_back">Volver</string>
+    <string name="security_section">Seguridad</string>
+    <string name="security_biometric_label">Entrar con huella o rostro</string>
+    <string name="security_biometric_description">Usa la biometría de tu teléfono en lugar de la contraseña.</string>
+    <string name="security_biometric_unavailable">Configura una huella o rostro en los ajustes del teléfono para activarlo.</string>
 </resources>

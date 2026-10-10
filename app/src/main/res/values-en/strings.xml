@@ -22,5 +22,49 @@
     <!-- Home (temporary) -->
     <string name="home_greeting">Hi, %1$s</string>
     <string name="home_pending_activation">Your session is active. Next step: activate this phone with your ID and a liveness check.</string>
+    <string name="home_device_linked">Your phone is linked to your account.</string>
+    <string name="home_biometric_hint">You can turn on fingerprint or face sign-in anytime in Profile and security.</string>
+    <string name="home_open_security">Profile and security</string>
     <string name="home_logout">Sign out</string>
+
+    <!-- Biometrics: activation offer -->
+    <string name="biometric_offer_section">security</string>
+    <string name="biometric_offer_title">Turn on fingerprint or face</string>
+    <string name="biometric_offer_body">Sign in without typing your password every time. Solventa never stores your fingerprint or face: your phone verifies them.</string>
+    <string name="biometric_offer_activate">Turn on</string>
+    <string name="biometric_offer_not_now">Not now</string>
+    <string name="biometric_offer_failed">We couldn\'t turn on biometric sign-in. You can try later in Profile and security.</string>
+    <string name="biometric_unavailable_title">Your phone has no fingerprint or face set up</string>
+    <string name="biometric_unavailable_body">Set them up in your phone settings and turn this on later from Profile and security.</string>
+    <string name="biometric_use_password">Use password</string>
+
+    <!-- Biometrics: system prompt -->
+    <string name="biometric_prompt_activate_title">Turn on biometric sign-in</string>
+    <string name="biometric_prompt_activate_subtitle">Confirm with your fingerprint or face</string>
+    <string name="biometric_prompt_cancel">Cancel</string>
+    <string name="biometric_prompt_unlock_title">Confirm it\'s you</string>
+    <string name="biometric_prompt_unlock_subtitle">Use your fingerprint or face to open Solventa</string>
+
+    <!-- Biometrics: app lock -->
+    <string name="unlock_title">Confirm it\'s you</string>
+    <string name="unlock_body">Use your fingerprint or face to open your policies.</string>
+    <string name="unlock_confirm">Use fingerprint or face</string>
+    <string name="unlock_failed_attempt">Attempt %1$d of %2$d</string>
+    <string name="unlock_failed_title">We didn\'t recognize your fingerprint or face</string>
+    <string name="unlock_failed_body">Clean the sensor and try again, or sign in with your password.</string>
+    <string name="unlock_retry">Try again</string>
+    <string name="unlock_locked_title">Biometrics locked for 5 minutes</string>
+    <string name="unlock_locked_body">All 3 attempts failed. Meanwhile, you can sign in with your password.</string>
+    <string name="unlock_locked_countdown_label">Unlocks in</string>
+    <string name="unlock_enter_with_password">Sign in with password</string>
+    <string name="unlock_changed_title">We detected a change in your phone\'s biometrics</string>
+    <string name="unlock_changed_body">A fingerprint or face was added or removed. For security we turned off biometric sign-in. Sign in with your password to turn it back on.</string>
+
+    <!-- Profile and security -->
+    <string name="security_title">Profile and security</string>
+    <string name="security_back">Back</string>
+    <string name="security_section">Security</string>
+    <string name="security_biometric_label">Sign in with fingerprint or face</string>
+    <string name="security_biometric_description">Use your phone\'s biometrics instead of your password.</string>
+    <string name="security_biometric_unavailable">Set up a fingerprint or face in your phone settings to turn this on.</string>
 </resources>

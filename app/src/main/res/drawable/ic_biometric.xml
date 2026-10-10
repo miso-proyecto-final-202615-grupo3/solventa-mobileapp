@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Huella estilizada para las pantallas de biometría. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M5,9.5 C6.2,6.2 8.9,4.5 12,4.5 C15.1,4.5 17.8,6.2 19,9.5" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M7.5,17 C7,15.5 7,13.8 7.5,12.5 C8.2,10.6 10,9.5 12,9.5 C14,9.5 15.8,10.6 16.5,12.5 C17,13.8 17,15.2 16.7,16.4" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M10.2,19.5 C9.7,18 9.6,16 9.8,14.5 C10,13.3 10.9,12.5 12,12.5 C13.1,12.5 14,13.3 14.2,14.5 C14.4,16 14.2,17.6 13.6,19" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M12,15 L12,20" />
+</vector>

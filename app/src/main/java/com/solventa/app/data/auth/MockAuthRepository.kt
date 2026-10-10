@@ -19,6 +19,17 @@ class MockAuthRepository(
             cliente = ClienteResumen(
                 id = "c-0001",
                 nombre = "Camila",
+                // Simula que ya completó la prueba de vida (HU3.1.1) y vinculó el teléfono.
+                estadoKyc = EstadoKyc.VERIFICADO,
+                dispositivoVinculado = true,
+            ),
+        ),
+        // Cliente que aún no activa el teléfono (HU3.1.1 pendiente): no se le ofrece biometría.
+        "andres.perez@correo.com" to MockAccount(
+            password = "Solventa2026",
+            cliente = ClienteResumen(
+                id = "c-0002",
+                nombre = "Andrés",
                 estadoKyc = EstadoKyc.PENDIENTE,
                 dispositivoVinculado = false,
             ),

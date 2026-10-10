@@ -2,6 +2,7 @@ package com.solventa.app.data.auth
 
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -14,7 +15,16 @@ class MockAuthRepositoryTest {
         val result = repository.login("  Camila.Rojas@correo.com ", "Solventa2026")
 
         assertTrue(result is LoginResult.Success)
-        assertEquals("Camila", (result as LoginResult.Success).session.cliente.nombre)
+        val cliente = (result as LoginResult.Success).session.cliente
+        assertEquals("Camila", cliente.nombre)
+        assertTrue(cliente.dispositivoVinculado)
+    }
+
+    @Test
+    fun `cuenta sin telefono activado retorna dispositivo no vinculado`() = runTest {
+        val result = repository.login("andres.perez@correo.com", "Solventa2026")
+
+        assertFalse((result as LoginResult.Success).session.cliente.dispositivoVinculado)
     }
 
     @Test

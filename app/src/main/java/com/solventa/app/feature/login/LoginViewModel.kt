@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.solventa.app.data.auth.AuthRepository
 import com.solventa.app.data.auth.LoginResult
+import com.solventa.app.data.auth.Session
 import com.solventa.app.data.session.SessionStore
 import com.solventa.app.di.AppContainer
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,7 @@ enum class LoginFieldError { EMAIL_INVALID, PASSWORD_EMPTY }
 enum class LoginFormError { INVALID_CREDENTIALS, NETWORK }
 
 /** Destino al que debe navegar la UI tras un intento de inicio de sesión. */
-enum class LoginDestination { HOME, ACCOUNT_NOT_FOUND }
+enum class LoginDestination { HOME, BIOMETRIC_OFFER, ACCOUNT_NOT_FOUND }
 
 data class LoginUiState(
     val email: String = "",
@@ -36,6 +37,7 @@ data class LoginUiState(
 class LoginViewModel(
     private val authRepository: AuthRepository,
     private val sessionStore: SessionStore,
+    private val shouldOfferBiometric: (Session) -> Boolean = { false },
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -68,7 +70,12 @@ class LoginViewModel(
             when (val result = authRepository.login(state.email.trim(), state.password)) {
                 is LoginResult.Success -> {
                     sessionStore.save(result.session)
-                    _uiState.update { it.copy(loading = false, password = "", destination = LoginDestination.HOME) }
+                    val destination = if (shouldOfferBiometric(result.session)) {
+                        LoginDestination.BIOMETRIC_OFFER
+                    } else {
+                        LoginDestination.HOME
+                    }
+                    _uiState.update { it.copy(loading = false, password = "", destination = destination) }
                 }
                 LoginResult.AccountNotFound ->
                     _uiState.update { it.copy(loading = false, destination = LoginDestination.ACCOUNT_NOT_FOUND) }
@@ -88,7 +95,9 @@ class LoginViewModel(
         private val EMAIL_REGEX = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
         fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
-            initializer { LoginViewModel(container.authRepository, container.sessionStore) }
+            initializer {
+                LoginViewModel(container.authRepository, container.sessionStore, container::shouldOfferBiometric)
+            }
         }
     }
 }
