@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores de la paleta de marca usados por recursos XML (tema e ícono).
+         La paleta completa para Compose está en core/designsystem/theme/Color.kt -->
+    <color name="papel">#FFF5F7F4</color>
+    <color name="cobalto">#FF1B3A6B</color>
+    <color name="ambar">#FFF2A93B</color>
+</resources>

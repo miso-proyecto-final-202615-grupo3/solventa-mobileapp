@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sign in -->
+    <string name="login_title">Sign in</string>
+    <string name="login_subtitle">Use the same email and password as the web channel.</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_show_password">Show password</string>
+    <string name="login_hide_password">Hide password</string>
+    <string name="login_submit">Sign in</string>
+    <string name="login_error_email_invalid">Enter a valid email.</string>
+    <string name="login_error_password_empty">Enter your password.</string>
+    <string name="login_error_invalid_credentials">Email or password don\'t match. Check them and try again.</string>
+    <string name="login_error_network">We couldn\'t connect. Check your connection and try again.</string>
+
+    <!-- Account not found -->
+    <string name="account_not_found_title">We couldn\'t find your account</string>
+    <string name="account_not_found_body">Sign-up happens on the web channel. Create your account there and come back to activate this phone.</string>
+    <string name="account_not_found_go_web">Go to web sign-up</string>
+    <string name="account_not_found_retry">Try another email</string>
+
+    <!-- Home (temporary) -->
+    <string name="home_greeting">Hi, %1$s</string>
+    <string name="home_pending_activation">Your session is active. Next step: activate this phone with your ID and a liveness check.</string>
+    <string name="home_logout">Sign out</string>
+</resources>

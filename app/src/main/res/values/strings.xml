@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Solventa</string>
+    <string name="brand_wordmark" translatable="false">solventa</string>
+
+    <!-- Inicio de sesión -->
+    <string name="login_title">Inicia sesión</string>
+    <string name="login_subtitle">Usa el mismo correo y contraseña del canal web.</string>
+    <string name="login_email_label">Correo</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_show_password">Ver contraseña</string>
+    <string name="login_hide_password">Ocultar contraseña</string>
+    <string name="login_submit">Entrar</string>
+    <string name="login_error_email_invalid">Escribe un correo válido.</string>
+    <string name="login_error_password_empty">Escribe tu contraseña.</string>
+    <string name="login_error_invalid_credentials">El correo o la contraseña no coinciden. Revísalos e intenta de nuevo.</string>
+    <string name="login_error_network">No pudimos conectarnos. Revisa tu conexión e intenta de nuevo.</string>
+
+    <!-- Cuenta no encontrada -->
+    <string name="account_not_found_title">No encontramos tu cuenta</string>
+    <string name="account_not_found_body">El registro se hace en el canal web. Crea tu cuenta allí y vuelve para activar este teléfono.</string>
+    <string name="account_not_found_go_web">Ir al registro web</string>
+    <string name="account_not_found_retry">Probar con otro correo</string>
+
+    <!-- Inicio (provisional) -->
+    <string name="home_greeting">Hola, %1$s</string>
+    <string name="home_pending_activation">Tu sesión está activa. El siguiente paso es activar este teléfono con tu cédula y una prueba de vida.</string>
+    <string name="home_logout">Cerrar sesión</string>
+</resources>
