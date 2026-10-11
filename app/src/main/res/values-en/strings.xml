@@ -8,6 +8,7 @@
     <string name="login_show_password">Show password</string>
     <string name="login_hide_password">Hide password</string>
     <string name="login_submit">Sign in</string>
+    <string name="login_use_biometric">Sign in with fingerprint or face</string>
     <string name="login_error_email_invalid">Enter a valid email.</string>
     <string name="login_error_password_empty">Enter your password.</string>
     <string name="login_error_invalid_credentials">Email or password don\'t match. Check them and try again.</string>

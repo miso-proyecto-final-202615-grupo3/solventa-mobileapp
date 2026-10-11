@@ -80,6 +80,23 @@ class AppLockManagerTest {
     }
 
     @Test
+    fun `lock a demanda bloquea si la biometria esta activa`() {
+        enableBiometricWithSession()
+        sessionStore.clear() // el usuario cerró sesión, la biometría sigue configurada
+
+        manager.lock()
+
+        assertTrue(manager.locked.value)
+    }
+
+    @Test
+    fun `lock a demanda no bloquea si la biometria no esta activa`() {
+        manager.lock()
+
+        assertFalse(manager.locked.value)
+    }
+
+    @Test
     fun `unlock retira el bloqueo`() {
         enableBiometricWithSession()
         manager.onColdStart()

@@ -43,10 +43,11 @@ class AppContainer(context: Context) {
     fun shouldOfferBiometric(session: Session): Boolean =
         session.cliente.dispositivoVinculado && !biometricVault.isEnabled() && !biometricSettings.offerDeclined
 
-    /** Cerrar sesión desactiva el acceso biométrico para no reabrir una cuenta cerrada. */
+    /**
+     * Cerrar sesión solo limpia la sesión en memoria. El acceso biométrico queda configurado:
+     * se desactiva desde Perfil > Seguridad, o al borrar los datos o desinstalar la app (HU3.1.2).
+     */
     fun logout() {
-        biometricVault.disable()
-        biometricSettings.offerDeclined = false
         sessionStore.clear()
     }
 }

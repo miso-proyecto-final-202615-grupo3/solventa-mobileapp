@@ -11,6 +11,7 @@
     <string name="login_show_password">Ver contraseña</string>
     <string name="login_hide_password">Ocultar contraseña</string>
     <string name="login_submit">Entrar</string>
+    <string name="login_use_biometric">Entrar con huella o rostro</string>
     <string name="login_error_email_invalid">Escribe un correo válido.</string>
     <string name="login_error_password_empty">Escribe tu contraseña.</string>
     <string name="login_error_invalid_credentials">El correo o la contraseña no coinciden. Revísalos e intenta de nuevo.</string>

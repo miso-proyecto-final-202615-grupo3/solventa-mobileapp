@@ -37,6 +37,11 @@ class AppLockManager(
         }
     }
 
+    /** Pide la biometría a demanda, por ejemplo desde "Entrar con huella o rostro" en el login. */
+    fun lock() {
+        if (vault.isEnabled()) _locked.value = true
+    }
+
     fun unlock() {
         _locked.value = false
     }

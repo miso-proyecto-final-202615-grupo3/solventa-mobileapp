@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.solventa.app.R
 import com.solventa.app.core.designsystem.component.SolventaPrimaryButton
+import com.solventa.app.core.designsystem.component.SolventaSecondaryButton
 import com.solventa.app.core.designsystem.theme.SolventaTheme
 
 object LoginTestTags {
@@ -42,6 +43,7 @@ object LoginTestTags {
     const val TOGGLE_PASSWORD = "login_toggle_password"
     const val SUBMIT = "login_submit"
     const val FORM_ERROR = "login_form_error"
+    const val BIOMETRIC_ENTRY = "login_biometric_entry"
 }
 
 @Composable
@@ -50,6 +52,8 @@ fun LoginRoute(
     onLoggedIn: () -> Unit,
     onBiometricOffer: () -> Unit,
     onAccountNotFound: () -> Unit,
+    biometricEntryAvailable: Boolean = false,
+    onBiometricEntry: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -69,6 +73,8 @@ fun LoginRoute(
         onPasswordChange = viewModel::onPasswordChange,
         onTogglePasswordVisibility = viewModel::onTogglePasswordVisibility,
         onSubmit = viewModel::onSubmit,
+        showBiometricEntry = biometricEntryAvailable,
+        onBiometricEntry = onBiometricEntry,
     )
 }
 
@@ -80,6 +86,8 @@ fun LoginScreen(
     onTogglePasswordVisibility: () -> Unit,
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
+    showBiometricEntry: Boolean = false,
+    onBiometricEntry: () -> Unit = {},
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -171,6 +179,14 @@ fun LoginScreen(
             loading = uiState.loading,
             modifier = Modifier.testTag(LoginTestTags.SUBMIT),
         )
+        if (showBiometricEntry) {
+            Spacer(Modifier.height(12.dp))
+            SolventaSecondaryButton(
+                text = stringResource(R.string.login_use_biometric),
+                onClick = onBiometricEntry,
+                modifier = Modifier.testTag(LoginTestTags.BIOMETRIC_ENTRY),
+            )
+        }
     }
 }
 

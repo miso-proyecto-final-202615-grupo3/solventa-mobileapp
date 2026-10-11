@@ -63,6 +63,9 @@ fun SolventaNavHost(
                         }
                     },
                     onAccountNotFound = { navController.navigate(Routes.ACCOUNT_NOT_FOUND) },
+                    // La biometría sigue configurada tras cerrar sesión: se puede entrar sin contraseña.
+                    biometricEntryAvailable = container.biometricVault.isEnabled(),
+                    onBiometricEntry = container.appLockManager::lock,
                 )
             }
             composable(Routes.ACCOUNT_NOT_FOUND) {
@@ -103,7 +106,8 @@ fun SolventaNavHost(
         if (locked) {
             UnlockRoute(
                 viewModel = viewModel(factory = UnlockViewModel.factory(container)),
-                onUnlocked = {},
+                // Al abrir o volver a la app ya hay una pantalla debajo; solo desde el login hay que ir a Inicio.
+                onUnlocked = { if (navController.currentDestination?.route == Routes.LOGIN) goToHome() },
                 onUsePassword = ::goToLogin,
             )
         }
