@@ -69,4 +69,12 @@ class MockAuthRepositoryTest {
             repository.login(MockAuthRepository.SIMULATE_NETWORK_ERROR_EMAIL, "123456"),
         )
     }
+
+    @Test
+    fun `correo especial simula servicio no disponible`() = runTest {
+        assertEquals(
+            LoginResult.ServiceUnavailable,
+            repository.login(MockAuthRepository.SIMULATE_SERVICE_UNAVAILABLE_EMAIL, "123456"),
+        )
+    }
 }

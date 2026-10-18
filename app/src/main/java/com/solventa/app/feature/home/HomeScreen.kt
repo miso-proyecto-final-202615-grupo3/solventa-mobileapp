@@ -37,7 +37,11 @@ fun HomeScreen(
             .padding(horizontal = 24.dp, vertical = 32.dp),
     ) {
         Text(
-            text = stringResource(R.string.home_greeting, clientName),
+            text = if (clientName.isBlank()) {
+                stringResource(R.string.home_greeting_generic)
+            } else {
+                stringResource(R.string.home_greeting, clientName)
+            },
             style = MaterialTheme.typography.headlineLarge,
         )
         Spacer(Modifier.height(12.dp))

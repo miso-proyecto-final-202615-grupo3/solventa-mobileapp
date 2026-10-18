@@ -121,6 +121,17 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `servicio no disponible muestra su propio error`() {
+        repository.result = LoginResult.ServiceUnavailable
+        fillValidForm()
+
+        viewModel.onSubmit()
+
+        assertEquals(LoginFormError.SERVICE_UNAVAILABLE, viewModel.uiState.value.formError)
+        assertEquals(false, viewModel.uiState.value.loading)
+    }
+
+    @Test
     fun `editar un campo limpia el error de formulario`() {
         repository.result = LoginResult.InvalidCredentials
         fillValidForm()

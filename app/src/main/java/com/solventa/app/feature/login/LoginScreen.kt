@@ -161,6 +161,7 @@ fun LoginScreen(
                     when (error) {
                         LoginFormError.INVALID_CREDENTIALS -> R.string.login_error_invalid_credentials
                         LoginFormError.NETWORK -> R.string.login_error_network
+                        LoginFormError.SERVICE_UNAVAILABLE -> R.string.login_error_service_unavailable
                     },
                 ),
                 color = MaterialTheme.colorScheme.error,
