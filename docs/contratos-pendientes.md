@@ -1,13 +1,15 @@
 # Contratos pendientes con backend (BFF Móvil)
 
-La app usa hoy un backend simulado (`MockAuthRepository`, `BuildConfig.USE_MOCK_BACKEND = true`).
-Estas preguntas deben confirmarse con el equipo antes de implementar la integración real.
+La app ya puede autenticarse contra el BFF Móvil (`RemoteAuthRepository`); el backend simulado sigue disponible.
+Estado de cada pregunta al 2026-10-16.
 
 ## Inicio de sesión
-1. ¿El móvil inicia sesión contra el BFF Móvil (`POST /v1/mobile/auth/login`) o directo contra Cognito? Propuesta: BFF devuelve `accessToken`, `refreshToken`, `expiresIn`.
-2. ¿La respuesta incluye `estadoKyc` y `dispositivoVinculado` para decidir si se va al onboarding o directo a la app?
-3. "No encontramos tu cuenta" revela qué correos existen (enumeración de usuarios). ¿Se mantiene o se usa un mensaje genérico?
-4. URL del registro web para el enlace de "Ir al registro web".
+1. ✅ Resuelta: la app inicia sesión contra el BFF Móvil, `POST /api/v1/bff-mobile/auth/login` con `{correo, password}`. Responde `access_token`, `refresh_token`, `expires_in`, `token_type` y `correo`. El BFF llama al MS Identidad, que autentica en Cognito.
+2. ⏳ Pendiente: el MS Identidad no expone el cliente autenticado (id, nombre, `estado_kyc`), y `dispositivoVinculado` depende de HU3.1.1. Propuesta: `GET /clientes/me` en el MS Identidad a partir del token, consumido por el BFF Móvil en el login.
+3. ✅ Resuelta: Cognito (`prevent_user_existence_errors`) y el MS Identidad responden 401 en ambos casos, así que con backend real se muestra el mensaje genérico de credenciales inválidas.
+4. ⏳ URL del registro web para el enlace de "Ir al registro web".
+4b. ⏳ Renovar la sesión: no hay endpoint de refresh en el MS Identidad ni en el BFF Móvil.
+4c. ⏳ Validación del token: hoy ningún servicio valida el JWT de Cognito; el BFF Móvil deberá hacerlo antes de exponer endpoints con datos del cliente.
 
 ## Consentimiento (HU3.1.3)
 5. ¿Es el mismo endpoint que usa la web en HU1.1.2 (`fuente_datos` / `proposito`)? ¿Qué valores corresponden a biométrico y ubicación, y de dónde sale la versión de términos?

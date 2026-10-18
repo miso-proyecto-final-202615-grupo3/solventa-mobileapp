@@ -12,17 +12,19 @@ import com.solventa.app.core.biometric.KeystoreBiometricVault
 import com.solventa.app.core.biometric.SharedPreferencesBiometricSettings
 import com.solventa.app.data.auth.AuthRepository
 import com.solventa.app.data.auth.MockAuthRepository
+import com.solventa.app.data.auth.RemoteAuthRepository
 import com.solventa.app.data.auth.Session
 import com.solventa.app.data.session.InMemorySessionStore
 import com.solventa.app.data.session.SessionStore
 
 /** Contenedor de dependencias manual; suficiente para el tamaño actual de la app. */
 class AppContainer(context: Context) {
+    /** Backend simulado o BFF Móvil real, según la propiedad de Gradle `solventa.useMockBackend`. */
     val authRepository: AuthRepository =
         if (BuildConfig.USE_MOCK_BACKEND) {
             MockAuthRepository()
         } else {
-            TODO("Implementación remota contra el BFF Móvil pendiente de contratos")
+            RemoteAuthRepository(baseUrl = BuildConfig.BFF_MOBILE_URL)
         }
 
     val sessionStore: SessionStore = InMemorySessionStore()

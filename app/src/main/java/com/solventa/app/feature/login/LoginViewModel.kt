@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 enum class LoginFieldError { EMAIL_INVALID, PASSWORD_EMPTY }
 
-enum class LoginFormError { INVALID_CREDENTIALS, NETWORK }
+enum class LoginFormError { INVALID_CREDENTIALS, NETWORK, SERVICE_UNAVAILABLE }
 
 /** Destino al que debe navegar la UI tras un intento de inicio de sesión. */
 enum class LoginDestination { HOME, BIOMETRIC_OFFER, ACCOUNT_NOT_FOUND }
@@ -83,6 +83,8 @@ class LoginViewModel(
                     _uiState.update { it.copy(loading = false, formError = LoginFormError.INVALID_CREDENTIALS) }
                 LoginResult.NetworkError ->
                     _uiState.update { it.copy(loading = false, formError = LoginFormError.NETWORK) }
+                LoginResult.ServiceUnavailable ->
+                    _uiState.update { it.copy(loading = false, formError = LoginFormError.SERVICE_UNAVAILABLE) }
             }
         }
     }
