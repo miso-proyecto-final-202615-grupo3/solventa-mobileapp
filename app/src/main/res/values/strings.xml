@@ -16,6 +16,7 @@
     <string name="login_error_password_empty">Escribe tu contraseña.</string>
     <string name="login_error_invalid_credentials">El correo o la contraseña no coinciden. Revísalos e intenta de nuevo.</string>
     <string name="login_error_network">No pudimos conectarnos. Revisa tu conexión e intenta de nuevo.</string>
+    <string name="login_error_service_unavailable">No pudimos iniciar sesión en este momento. Intenta de nuevo en unos minutos.</string>
 
     <!-- Cuenta no encontrada -->
     <string name="account_not_found_title">No encontramos tu cuenta</string>
@@ -25,6 +26,7 @@
 
     <!-- Inicio (provisional) -->
     <string name="home_greeting">Hola, %1$s</string>
+    <string name="home_greeting_generic">Hola</string>
     <string name="home_pending_activation">Tu sesión está activa. El siguiente paso es activar este teléfono con tu cédula y una prueba de vida.</string>
     <string name="home_device_linked">Tu teléfono está vinculado a tu cuenta.</string>
     <string name="home_biometric_hint">Puedes activar el acceso con huella o rostro cuando quieras en Perfil y seguridad.</string>

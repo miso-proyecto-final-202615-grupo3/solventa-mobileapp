@@ -18,7 +18,8 @@ object SessionCodec {
                 .put("id", session.cliente.id)
                 .put("nombre", session.cliente.nombre)
                 .put("estadoKyc", session.cliente.estadoKyc.name)
-                .put("dispositivoVinculado", session.cliente.dispositivoVinculado),
+                .put("dispositivoVinculado", session.cliente.dispositivoVinculado)
+                .put("correo", session.cliente.correo ?: JSONObject.NULL),
         )
         .toString()
         .toByteArray(Charsets.UTF_8)
@@ -35,6 +36,7 @@ object SessionCodec {
                 nombre = cliente.getString("nombre"),
                 estadoKyc = EstadoKyc.valueOf(cliente.getString("estadoKyc")),
                 dispositivoVinculado = cliente.getBoolean("dispositivoVinculado"),
+                correo = if (cliente.isNull("correo")) null else cliente.getString("correo"),
             ),
         )
     }

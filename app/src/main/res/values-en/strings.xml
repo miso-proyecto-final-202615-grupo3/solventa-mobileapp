@@ -13,6 +13,7 @@
     <string name="login_error_password_empty">Enter your password.</string>
     <string name="login_error_invalid_credentials">Email or password don\'t match. Check them and try again.</string>
     <string name="login_error_network">We couldn\'t connect. Check your connection and try again.</string>
+    <string name="login_error_service_unavailable">We couldn\'t sign you in right now. Try again in a few minutes.</string>
 
     <!-- Account not found -->
     <string name="account_not_found_title">We couldn\'t find your account</string>
@@ -22,6 +23,7 @@
 
     <!-- Home (temporary) -->
     <string name="home_greeting">Hi, %1$s</string>
+    <string name="home_greeting_generic">Hi</string>
     <string name="home_pending_activation">Your session is active. Next step: activate this phone with your ID and a liveness check.</string>
     <string name="home_device_linked">Your phone is linked to your account.</string>
     <string name="home_biometric_hint">You can turn on fingerprint or face sign-in anytime in Profile and security.</string>

@@ -35,9 +35,79 @@ app/src/main/java/com/solventa/app/
 └── navigation/          # SolventaNavHost y rutas
 ```
 
-## Backend simulado
+## Backend
 
-Mientras se confirman los contratos con el BFF Móvil (ver [docs/contratos-pendientes.md](docs/contratos-pendientes.md)), la app usa `MockAuthRepository`, controlado por `BuildConfig.USE_MOCK_BACKEND`.
+La app puede usar un backend simulado (por defecto) o el **BFF Móvil** real del monorepo `solventa-backend` (`POST /api/v1/bff-mobile/auth/login`). Se elige con propiedades de Gradle, sin tocar código; por ejemplo en `~/.gradle/gradle.properties`:
+
+```properties
+solventa.useMockBackend=false
+solventa.bffMobileUrl=http://10.0.2.2:8002
+```
+
+- `10.0.2.2` es el PC visto desde el emulador; en un teléfono físico usa la IP del PC en la red local.
+- En debug se permite HTTP sin cifrar solo hacia `10.0.2.2` y `localhost` (`src/debug/res/xml/network_security_config.xml`). Release exige HTTPS.
+
+### APK de release (API Gateway)
+
+En release la app consume el **API Gateway** de AWS (app → API Gateway → ALB del ingress → BFF Móvil), nunca el ALB
+directamente: su DNS cambia en cada despliegue y no tiene HTTPS. La URL **no está en el código**: se pasa al compilar
+con la propiedad `solventa.release.bffMobileUrl`. Si el API Gateway se recrea y cambia de URL, basta con volver a
+compilar con la nueva; no hay que tocar código.
+
+**1. Obtener la URL del API Gateway** (después de desplegar `solventa-infrastructure`):
+
+```bash
+# Salida de Terraform (output api_gateway_endpoint en src/environments/dev; hoy está comentado junto con el módulo)
+terraform -chdir=src/environments/dev output -raw api_gateway_endpoint
+# o directamente en AWS
+aws apigatewayv2 get-apis --region us-east-1 --query "Items[].[Name,ApiEndpoint]" --output table
+# Nombre del stage: si no es $default, la URL lleva el stage al final (https://…amazonaws.com/dev)
+aws apigatewayv2 get-stages --api-id <api-id> --region us-east-1 --query "Items[].StageName"
+```
+
+**2. Comprobar que el API Gateway llega al BFF Móvil** antes de compilar. Con un usuario inexistente debe responder
+`401 {"detail":"Credenciales inválidas."}`; un `404` indica una ruta o un stage mal configurados, y un `5xx`, que el
+API Gateway no alcanza el ALB (clúster apagado o integración desactualizada):
+
+```bash
+curl -i -X POST "<URL>/api/v1/bff-mobile/auth/login" -H "Content-Type: application/json" \
+  -d '{"correo":"no.existe@correo.com","password":"Clave1234"}'
+```
+
+**3. Poner la URL y compilar.** Cualquiera de estas opciones:
+
+- En la línea de comandos (recomendado para un release puntual):
+  ```bash
+  ./gradlew assembleRelease -Psolventa.release.bffMobileUrl=https://<api-id>.execute-api.us-east-1.amazonaws.com
+  ```
+- O fija en `~/.gradle/gradle.properties` (no se versiona), para no repetirla:
+  ```properties
+  solventa.release.bffMobileUrl=https://<api-id>.execute-api.us-east-1.amazonaws.com
+  ```
+
+La URL va sin `/` final ni ruta: la app agrega `/api/v1/bff-mobile/auth/login`. El APK queda en
+`app/build/outputs/apk/release/`. Para el APK de demostración con backend simulado (funciona sin AWS):
+`./gradlew assembleRelease -Psolventa.useMockBackend=true`.
+
+**4. Probar el APK** en un teléfono o emulador: con un usuario de Cognito debe entrar al inicio; con uno inexistente,
+"El correo o la contraseña no coinciden"; con el clúster apagado, "No pudimos iniciar sesión en este momento".
+
+Notas:
+
+- El empaquetado falla si la URL no es `https://`, para no publicar un APK que no pueda conectarse (release no permite
+  HTTP sin cifrar).
+- Hoy el release sale sin firmar (`app-release-unsigned.apk`) y Android no lo instala así: falta definir la llave de
+  firma antes de publicarlo en GitHub Releases.
+- Para que la URL no cambie entre despliegues, el API Gateway debe quedar como recurso permanente en
+  `solventa-infrastructure` (como Cognito) y el despliegue solo debe actualizar su integración con el DNS del ALB que
+  crea el ingress (`kubectl get ingress solventa-ingress-alb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
+  y `aws apigatewayv2 update-integration … --integration-uri http://<dns-del-alb>`).
+- Backend local: en `solventa-backend`, crear `.env` desde `.env.example` con tus credenciales de AWS y ejecutar `docker compose up --build`. La cuenta debe existir en Cognito (registro desde la web o el `bff_web`).
+- Limitaciones actuales del BFF Móvil: solo entrega tokens y el correo. Nombre, estado KYC y vinculación del dispositivo llegarán cuando el MS Identidad exponga el cliente autenticado y exista HU3.1.1; mientras tanto la app asume el teléfono vinculado para poder ofrecer la biometría. "Cuenta no encontrada" no se distingue de "credenciales inválidas" (Cognito no lo revela).
+
+### Backend simulado
+
+`MockAuthRepository`, activo con `solventa.useMockBackend=true` (valor por defecto).
 
 Regla de demostración: cualquier correo con formato válido y una contraseña de **6 o más caracteres** inicia sesión.
 
@@ -49,6 +119,7 @@ Regla de demostración: cualquier correo con formato válido y una contraseña d
 | cualquiera de los anteriores | menos de 6 caracteres | Credenciales inválidas |
 | `sin.cuenta@correo.com` | cualquiera | Cuenta no encontrada |
 | `sin.red@correo.com` | cualquiera | Falla de red |
+| `sin.servicio@correo.com` | cualquiera | Servicio no disponible (el BFF responde pero no puede autenticar) |
 | correo con formato inválido | cualquiera | Cuenta no encontrada |
 
 ## Acceso biométrico (HU3.1.2)

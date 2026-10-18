@@ -36,6 +36,7 @@ class MockAuthRepository(
         delay(latencyMillis)
         val normalized = email.trim().lowercase()
         if (normalized == SIMULATE_NETWORK_ERROR_EMAIL) return LoginResult.NetworkError
+        if (normalized == SIMULATE_SERVICE_UNAVAILABLE_EMAIL) return LoginResult.ServiceUnavailable
         if (normalized == SIMULATE_ACCOUNT_NOT_FOUND_EMAIL || !EMAIL_FORMAT.matches(normalized)) {
             return LoginResult.AccountNotFound
         }
@@ -60,6 +61,9 @@ class MockAuthRepository(
     companion object {
         /** Correo que simula una falla de red para probar ese estado en la UI. */
         const val SIMULATE_NETWORK_ERROR_EMAIL = "sin.red@correo.com"
+
+        /** Correo que simula el servidor sin poder autenticar (p. ej. 503) para probar ese estado en la UI. */
+        const val SIMULATE_SERVICE_UNAVAILABLE_EMAIL = "sin.servicio@correo.com"
 
         /** Correo que simula "cuenta no encontrada" para probar ese estado en la UI. */
         const val SIMULATE_ACCOUNT_NOT_FOUND_EMAIL = "sin.cuenta@correo.com"
