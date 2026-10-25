@@ -1,0 +1,111 @@
+package com.solventa.app.data.activation
+
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+
+@Serializable
+internal data class StartActivationRequestDto(
+    val correo: String,
+    @SerialName("installation_id") val installationId: String,
+    val plataforma: String,
+    val modelo: String,
+    @SerialName("version_so") val osVersion: String,
+)
+
+@Serializable
+internal data class CaptureChallengeDto(
+    val gesture: String,
+    val nonce: String,
+)
+
+@Serializable
+internal data class CaptureDto(
+    val type: String,
+    val challenge: CaptureChallengeDto? = null,
+)
+
+@Serializable
+internal data class StartActivationResponseDto(
+    @SerialName("dispositivo_vinculado") val deviceLinked: Boolean,
+    @SerialName("sesion_id") val sessionId: String? = null,
+    @SerialName("expira_en") val expiresAt: String? = null,
+    val captura: CaptureDto? = null,
+    @SerialName("intentos_restantes") val remainingAttempts: Int? = null,
+)
+
+class RemoteActivationRepository(
+    baseUrl: String,
+    private val client: OkHttpClient = defaultClient(),
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+) : ActivationRepository {
+    private val startUrl = baseUrl.trimEnd('/') + START_PATH
+
+    override suspend fun start(
+        email: String,
+        installationId: String,
+        platform: String,
+        model: String,
+        osVersion: String,
+    ): ActivationStartResult = withContext(ioDispatcher) {
+        val requestBody = json.encodeToString(
+            StartActivationRequestDto.serializer(),
+            StartActivationRequestDto(email, installationId, platform, model, osVersion),
+        ).toRequestBody(JSON_MEDIA_TYPE)
+        val request = Request.Builder().url(startUrl).post(requestBody).build()
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@use ActivationStartResult.ServiceUnavailable
+                val dto = json.decodeFromString(
+                    StartActivationResponseDto.serializer(),
+                    response.body?.string().orEmpty(),
+                )
+                if (dto.deviceLinked) return@use ActivationStartResult.DeviceAlreadyLinked
+                val capture = dto.captura
+                val challenge = capture?.challenge
+                if (dto.sessionId.isNullOrBlank() || dto.expiresAt.isNullOrBlank() ||
+                    capture?.type != "FRAMES" || challenge == null
+                ) {
+                    return@use ActivationStartResult.ServiceUnavailable
+                }
+                ActivationStartResult.ChallengeReady(
+                    LivenessChallenge(
+                        sessionId = dto.sessionId,
+                        expiresAt = dto.expiresAt,
+                        gesture = challenge.gesture,
+                        nonce = challenge.nonce,
+                        remainingAttempts = dto.remainingAttempts ?: 0,
+                    ),
+                )
+            }
+        } catch (_: SerializationException) {
+            ActivationStartResult.ServiceUnavailable
+        } catch (_: IOException) {
+            ActivationStartResult.NetworkError
+        } catch (_: IllegalArgumentException) {
+            ActivationStartResult.ServiceUnavailable
+        }
+    }
+
+    companion object {
+        const val START_PATH = "/api/v1/bff-mobile/activacion/sesiones"
+        private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
+        private val json = Json { ignoreUnknownKeys = true }
+
+        fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .build()
+    }
+}
