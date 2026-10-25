@@ -105,7 +105,14 @@ fun SolventaNavHost(
                 ActivationScreen(
                     email = email,
                     repository = remember { RemoteActivationRepository(BuildConfig.BFF_MOBILE_URL) },
-                    onApproved = ::goToHome,
+                    onApproved = {
+                        session?.let {
+                            container.sessionStore.save(
+                                it.copy(cliente = it.cliente.copy(dispositivoVinculado = true)),
+                            )
+                        }
+                        goToHome()
+                    },
                 )
             }
             composable(Routes.SECURITY) {
