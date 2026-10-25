@@ -7,10 +7,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MultipartBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -49,7 +51,8 @@ class RemoteActivationRepository(
     private val client: OkHttpClient = defaultClient(),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ActivationRepository {
-    private val startUrl = baseUrl.trimEnd('/') + START_PATH
+    private val baseUrl = baseUrl.trimEnd('/')
+    private val startUrl = this.baseUrl + START_PATH
 
     override suspend fun start(
         email: String,
@@ -97,8 +100,27 @@ class RemoteActivationRepository(
         }
     }
 
+    override suspend fun verify(email: String, challenge: LivenessChallenge, frames: List<ByteArray>): ActivationVerificationResult = withContext(ioDispatcher) {
+        if (frames.size != 3) return@withContext ActivationVerificationResult.ServiceUnavailable
+        val body = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("correo", email).addFormDataPart("nonce", challenge.nonce)
+        listOf("frame_inicio", "frame_gesto", "frame_fin").zip(frames).forEach { (name, bytes) ->
+            body.addFormDataPart(name, "$name.jpg", bytes.toRequestBody("image/jpeg".toMediaType()))
+        }
+        try {
+            client.newCall(Request.Builder().url(baseUrl + VERIFY_PATH.format(challenge.sessionId)).post(body.build()).build()).execute().use { response ->
+                if (!response.isSuccessful) return@use ActivationVerificationResult.ServiceUnavailable
+                val data = json.parseToJsonElement(response.body?.string().orEmpty()).jsonObject
+                if (data["aprobada"]?.toString() == "true") ActivationVerificationResult.Approved
+                else ActivationVerificationResult.Rejected(data["motivo"]?.toString()?.trim('"'))
+            }
+        } catch (_: IOException) { ActivationVerificationResult.NetworkError }
+        catch (_: Exception) { ActivationVerificationResult.ServiceUnavailable }
+    }
+
     companion object {
         const val START_PATH = "/api/v1/bff-mobile/activacion/sesiones"
+        const val VERIFY_PATH = "/api/v1/bff-mobile/activacion/sesiones/%s/verificacion"
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         private val json = Json { ignoreUnknownKeys = true }
 

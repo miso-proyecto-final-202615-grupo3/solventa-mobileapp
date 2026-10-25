@@ -15,6 +15,13 @@ sealed interface ActivationStartResult {
     data object ServiceUnavailable : ActivationStartResult
 }
 
+sealed interface ActivationVerificationResult {
+    data object Approved : ActivationVerificationResult
+    data class Rejected(val reason: String?) : ActivationVerificationResult
+    data object NetworkError : ActivationVerificationResult
+    data object ServiceUnavailable : ActivationVerificationResult
+}
+
 interface ActivationRepository {
     suspend fun start(
         email: String,
@@ -23,4 +30,6 @@ interface ActivationRepository {
         model: String,
         osVersion: String,
     ): ActivationStartResult
+
+    suspend fun verify(email: String, challenge: LivenessChallenge, frames: List<ByteArray>): ActivationVerificationResult
 }

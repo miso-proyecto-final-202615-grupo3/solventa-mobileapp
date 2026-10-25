@@ -22,6 +22,8 @@ import com.solventa.app.feature.biometric.SecuritySettingsViewModel
 import com.solventa.app.feature.biometric.UnlockRoute
 import com.solventa.app.feature.biometric.UnlockViewModel
 import com.solventa.app.feature.home.HomeScreen
+import com.solventa.app.feature.activation.ActivationScreen
+import com.solventa.app.data.activation.RemoteActivationRepository
 import com.solventa.app.feature.login.LoginRoute
 import com.solventa.app.feature.login.LoginViewModel
 
@@ -31,6 +33,7 @@ object Routes {
     const val BIOMETRIC_OFFER = "biometric-offer"
     const val HOME = "home"
     const val SECURITY = "security"
+    const val ACTIVATION = "activation"
 }
 
 @Composable
@@ -88,11 +91,21 @@ fun SolventaNavHost(
                     clientName = session?.cliente?.nombre.orEmpty(),
                     deviceLinked = session?.cliente?.dispositivoVinculado == true,
                     showBiometricHint = !biometricEnabled && container.biometricSettings.offerDeclined,
+                    onActivateDevice = { navController.navigate(Routes.ACTIVATION) },
                     onOpenSecurity = { navController.navigate(Routes.SECURITY) },
                     onLogout = {
                         container.logout()
                         goToLogin()
                     },
+                )
+            }
+            composable(Routes.ACTIVATION) {
+                val session by container.sessionStore.session.collectAsStateWithLifecycle()
+                val email = session?.cliente?.correo.orEmpty()
+                ActivationScreen(
+                    email = email,
+                    repository = remember { RemoteActivationRepository(BuildConfig.BFF_MOBILE_URL) },
+                    onApproved = ::goToHome,
                 )
             }
             composable(Routes.SECURITY) {
