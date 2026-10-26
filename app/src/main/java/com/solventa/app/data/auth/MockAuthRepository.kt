@@ -32,7 +32,7 @@ class MockAuthRepository(
         ),
     )
 
-    override suspend fun login(email: String, password: String): LoginResult {
+    override suspend fun login(email: String, password: String, installationId: String?): LoginResult {
         delay(latencyMillis)
         val normalized = email.trim().lowercase()
         if (normalized == SIMULATE_NETWORK_ERROR_EMAIL) return LoginResult.NetworkError

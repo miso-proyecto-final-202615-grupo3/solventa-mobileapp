@@ -8,6 +8,7 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -66,7 +67,7 @@ class RemoteAuthRepositoryTest {
         assertEquals("refresh-123", session.refreshToken)
         assertEquals(3600L, session.expiresInSeconds)
         assertEquals("ana.perez@example.com", session.cliente.correo)
-        assertTrue(session.cliente.dispositivoVinculado)
+        assertFalse(session.cliente.dispositivoVinculado)
     }
 
     @Test

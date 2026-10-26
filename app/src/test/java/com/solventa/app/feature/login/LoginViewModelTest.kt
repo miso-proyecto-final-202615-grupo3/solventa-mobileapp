@@ -21,7 +21,11 @@ class LoginViewModelTest {
 
     private class StubAuthRepository(var result: LoginResult) : AuthRepository {
         var calls = 0
-        override suspend fun login(email: String, password: String): LoginResult {
+        override suspend fun login(
+            email: String,
+            password: String,
+            installationId: String?,
+        ): LoginResult {
             calls++
             return result
         }

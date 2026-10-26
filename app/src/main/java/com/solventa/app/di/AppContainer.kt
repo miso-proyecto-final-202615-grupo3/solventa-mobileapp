@@ -10,6 +10,8 @@ import com.solventa.app.core.biometric.BiometricSettings
 import com.solventa.app.core.biometric.BiometricVault
 import com.solventa.app.core.biometric.KeystoreBiometricVault
 import com.solventa.app.core.biometric.SharedPreferencesBiometricSettings
+import com.solventa.app.core.device.InstallationIdProvider
+import com.solventa.app.core.device.SharedPreferencesInstallationIdProvider
 import com.solventa.app.data.auth.AuthRepository
 import com.solventa.app.data.auth.MockAuthRepository
 import com.solventa.app.data.auth.RemoteAuthRepository
@@ -19,6 +21,7 @@ import com.solventa.app.data.session.SessionStore
 
 /** Contenedor de dependencias manual; suficiente para el tamaño actual de la app. */
 class AppContainer(context: Context) {
+    val installationIdProvider: InstallationIdProvider = SharedPreferencesInstallationIdProvider(context)
     /** Backend simulado o BFF Móvil real, según la propiedad de Gradle `solventa.useMockBackend`. */
     val authRepository: AuthRepository =
         if (BuildConfig.USE_MOCK_BACKEND) {
