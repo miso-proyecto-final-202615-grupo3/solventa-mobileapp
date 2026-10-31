@@ -57,7 +57,7 @@ fun ActivationScreen(accessToken: String, repository: ActivationRepository, onAp
             Spacer(Modifier.height(12.dp))
             Button(onClick = {
                 scope.launch {
-                    when (repository.verify(accessToken, challenge!!, frames.toList())) {
+                    when (val result = repository.verify(accessToken, challenge!!, frames.toList())) {
                         ActivationVerificationResult.Approved -> {
                             frames.clear()
                             challenge = null
