@@ -54,12 +54,18 @@ fun SolventaNavHost(
         popUpTo(navController.graph.id) { inclusive = true }
     }
 
+    fun goToActivation() = navController.navigate(Routes.ACTIVATION) {
+        popUpTo(navController.graph.id) { inclusive = true }
+    }
+
     Box(modifier) {
         NavHost(navController = navController, startDestination = startDestination) {
             composable(Routes.LOGIN) {
                 LoginRoute(
                     viewModel = viewModel(factory = LoginViewModel.factory(container)),
-                    onLoggedIn = ::goToHome,
+                    onLoggedIn = {
+                        if (container.sessionStore.session.value?.cliente?.dispositivoVinculado == true) goToHome() else goToActivation()
+                    },
                     onBiometricOffer = {
                         navController.navigate(Routes.BIOMETRIC_OFFER) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
@@ -101,9 +107,8 @@ fun SolventaNavHost(
             }
             composable(Routes.ACTIVATION) {
                 val session by container.sessionStore.session.collectAsStateWithLifecycle()
-                val email = session?.cliente?.correo.orEmpty()
                 ActivationScreen(
-                    email = email,
+                    accessToken = session?.accessToken.orEmpty(),
                     repository = remember { RemoteActivationRepository(BuildConfig.BFF_MOBILE_URL) },
                     onApproved = {
                         session?.let {

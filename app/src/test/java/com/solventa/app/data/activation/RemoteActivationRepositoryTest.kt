@@ -33,14 +33,14 @@ class RemoteActivationRepositoryTest {
                   "dispositivo_vinculado":false,
                   "sesion_id":"sesion-1",
                   "expira_en":"2026-10-25T12:02:00Z",
-                  "captura":{"type":"FRAMES","challenge":{"gesture":"BLINK","nonce":"reto-1"}},
+                  "captura":{"tipo":"FRAMES","reto":{"gesto":"BLINK","nonce":"reto-1"}},
                   "intentos_restantes":3
                 }""".trimIndent(),
             ),
         )
         val repository = RemoteActivationRepository(server.url("/").toString(), ioDispatcher = dispatcher)
 
-        val result = repository.start("ana@example.com", "instalacion-1", "ANDROID", "Pixel", "15")
+        val result = repository.start("token-1", "instalacion-1", "ANDROID", "Pixel", "15")
 
         assertTrue(result is ActivationStartResult.ChallengeReady)
         result as ActivationStartResult.ChallengeReady
@@ -48,7 +48,7 @@ class RemoteActivationRepositoryTest {
         assertEquals("BLINK", result.challenge.gesture)
         assertEquals("reto-1", result.challenge.nonce)
         assertEquals(
-            """{"correo":"ana@example.com","installation_id":"instalacion-1","plataforma":"ANDROID","modelo":"Pixel","version_so":"15"}""",
+            """{"installation_id":"instalacion-1","plataforma":"ANDROID","modelo":"Pixel","version_so":"15"}""",
             server.takeRequest().body.readUtf8(),
         )
     }
@@ -58,7 +58,7 @@ class RemoteActivationRepositoryTest {
         server.enqueue(MockResponse().setResponseCode(200).setBody("""{"dispositivo_vinculado":true}"""))
         val repository = RemoteActivationRepository(server.url("/").toString(), ioDispatcher = dispatcher)
 
-        val result = repository.start("ana@example.com", "instalacion-1", "ANDROID", "Pixel", "15")
+        val result = repository.start("token-1", "instalacion-1", "ANDROID", "Pixel", "15")
 
         assertEquals(ActivationStartResult.DeviceAlreadyLinked, result)
     }

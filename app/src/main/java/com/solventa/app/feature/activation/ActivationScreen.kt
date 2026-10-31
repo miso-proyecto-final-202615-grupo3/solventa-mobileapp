@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
 @Composable
-fun ActivationScreen(email: String, repository: ActivationRepository, onApproved: () -> Unit) {
+fun ActivationScreen(accessToken: String, repository: ActivationRepository, onApproved: () -> Unit) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val installationId = remember(context) { SharedPreferencesInstallationIdProvider(context).get() }
@@ -41,8 +41,8 @@ fun ActivationScreen(email: String, repository: ActivationRepository, onApproved
             Button(onClick = onApproved) { Text("Continuar") }
         } else if (challenge == null) Button(onClick = {
             scope.launch {
-                when (val result = repository.start(email, installationId, "ANDROID", android.os.Build.MODEL, android.os.Build.VERSION.RELEASE)) {
-                    is ActivationStartResult.ChallengeReady -> { challenge = result.challenge; message = "Mira la cámara y parpadea. Toma tres fotos: inicio, gesto y final." }
+                when (val result = repository.start(accessToken, installationId, "ANDROID", android.os.Build.MODEL, android.os.Build.VERSION.RELEASE)) {
+                    is ActivationStartResult.ChallengeReady -> { challenge = result.challenge; message = "Mira la cámara y realiza: ${result.challenge.gesture}. Toma tres fotos: inicio, gesto y final." }
                     ActivationStartResult.DeviceAlreadyLinked -> {
                         approved = true
                         message = "Este teléfono ya está vinculado a tu cuenta."
@@ -56,7 +56,7 @@ fun ActivationScreen(email: String, repository: ActivationRepository, onApproved
             Spacer(Modifier.height(12.dp))
             Button(onClick = {
                 scope.launch {
-                    when (repository.verify(email, challenge!!, frames.toList())) {
+                    when (repository.verify(accessToken, challenge!!, frames.toList())) {
                         ActivationVerificationResult.Approved -> {
                             frames.clear()
                             challenge = null

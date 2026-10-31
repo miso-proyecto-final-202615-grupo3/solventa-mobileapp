@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit
 
 @Serializable
 internal data class StartActivationRequestDto(
-    val correo: String,
     @SerialName("installation_id") val installationId: String,
     val plataforma: String,
     val modelo: String,
@@ -27,14 +26,14 @@ internal data class StartActivationRequestDto(
 
 @Serializable
 internal data class CaptureChallengeDto(
-    val gesture: String,
+    @SerialName("gesto") val gesture: String,
     val nonce: String,
 )
 
 @Serializable
 internal data class CaptureDto(
-    val type: String,
-    val challenge: CaptureChallengeDto? = null,
+    @SerialName("tipo") val type: String,
+    @SerialName("reto") val challenge: CaptureChallengeDto? = null,
 )
 
 @Serializable
@@ -55,7 +54,7 @@ class RemoteActivationRepository(
     private val startUrl = this.baseUrl + START_PATH
 
     override suspend fun start(
-        email: String,
+        accessToken: String,
         installationId: String,
         platform: String,
         model: String,
@@ -63,9 +62,9 @@ class RemoteActivationRepository(
     ): ActivationStartResult = withContext(ioDispatcher) {
         val requestBody = json.encodeToString(
             StartActivationRequestDto.serializer(),
-            StartActivationRequestDto(email, installationId, platform, model, osVersion),
+            StartActivationRequestDto(installationId, platform, model, osVersion),
         ).toRequestBody(JSON_MEDIA_TYPE)
-        val request = Request.Builder().url(startUrl).post(requestBody).build()
+        val request = Request.Builder().url(startUrl).header("Authorization", "Bearer $accessToken").post(requestBody).build()
         try {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@use ActivationStartResult.ServiceUnavailable
@@ -100,18 +99,18 @@ class RemoteActivationRepository(
         }
     }
 
-    override suspend fun verify(email: String, challenge: LivenessChallenge, frames: List<ByteArray>): ActivationVerificationResult = withContext(ioDispatcher) {
+    override suspend fun verify(accessToken: String, challenge: LivenessChallenge, frames: List<ByteArray>): ActivationVerificationResult = withContext(ioDispatcher) {
         if (frames.size != 3) return@withContext ActivationVerificationResult.ServiceUnavailable
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("correo", email).addFormDataPart("nonce", challenge.nonce)
+            .addFormDataPart("nonce", challenge.nonce)
         listOf("frame_inicio", "frame_gesto", "frame_fin").zip(frames).forEach { (name, bytes) ->
             body.addFormDataPart(name, "$name.jpg", bytes.toRequestBody("image/jpeg".toMediaType()))
         }
         try {
-            client.newCall(Request.Builder().url(baseUrl + VERIFY_PATH.format(challenge.sessionId)).post(body.build()).build()).execute().use { response ->
+            client.newCall(Request.Builder().url(baseUrl + VERIFY_PATH.format(challenge.sessionId)).header("Authorization", "Bearer $accessToken").post(body.build()).build()).execute().use { response ->
                 if (!response.isSuccessful) return@use ActivationVerificationResult.ServiceUnavailable
                 val data = json.parseToJsonElement(response.body?.string().orEmpty()).jsonObject
-                if (data["aprobada"]?.toString() == "true") ActivationVerificationResult.Approved
+                if (data["resultado"]?.toString()?.trim('"') == "APROBADO") ActivationVerificationResult.Approved
                 else ActivationVerificationResult.Rejected(data["motivo"]?.toString()?.trim('"'))
             }
         } catch (_: IOException) { ActivationVerificationResult.NetworkError }

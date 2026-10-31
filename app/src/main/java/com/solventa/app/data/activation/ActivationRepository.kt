@@ -24,12 +24,12 @@ sealed interface ActivationVerificationResult {
 
 interface ActivationRepository {
     suspend fun start(
-        email: String,
+        accessToken: String,
         installationId: String,
         platform: String,
         model: String,
         osVersion: String,
     ): ActivationStartResult
 
-    suspend fun verify(email: String, challenge: LivenessChallenge, frames: List<ByteArray>): ActivationVerificationResult
+    suspend fun verify(accessToken: String, challenge: LivenessChallenge, frames: List<ByteArray>): ActivationVerificationResult
 }
