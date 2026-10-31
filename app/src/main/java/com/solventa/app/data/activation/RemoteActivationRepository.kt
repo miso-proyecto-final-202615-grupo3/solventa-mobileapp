@@ -49,6 +49,7 @@ class RemoteActivationRepository(
     baseUrl: String,
     private val client: OkHttpClient = defaultClient(),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val demoEmail: String? = null,
 ) : ActivationRepository {
     private val baseUrl = baseUrl.trimEnd('/')
     private val startUrl = this.baseUrl + START_PATH
@@ -64,7 +65,8 @@ class RemoteActivationRepository(
             StartActivationRequestDto.serializer(),
             StartActivationRequestDto(installationId, platform, model, osVersion),
         ).toRequestBody(JSON_MEDIA_TYPE)
-        val request = Request.Builder().url(startUrl).header("Authorization", "Bearer $accessToken").post(requestBody).build()
+        val request = Request.Builder().url(startUrl).header("Authorization", "Bearer $accessToken")
+            .apply { demoEmail?.let { header("X-Demo-Correo", it) } }.post(requestBody).build()
         try {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@use ActivationStartResult.ServiceUnavailable
@@ -107,7 +109,8 @@ class RemoteActivationRepository(
             body.addFormDataPart(name, "$name.jpg", bytes.toRequestBody("image/jpeg".toMediaType()))
         }
         try {
-            client.newCall(Request.Builder().url(baseUrl + VERIFY_PATH.format(challenge.sessionId)).header("Authorization", "Bearer $accessToken").post(body.build()).build()).execute().use { response ->
+            client.newCall(Request.Builder().url(baseUrl + VERIFY_PATH.format(challenge.sessionId)).header("Authorization", "Bearer $accessToken")
+                .apply { demoEmail?.let { header("X-Demo-Correo", it) } }.post(body.build()).build()).execute().use { response ->
                 if (!response.isSuccessful) return@use ActivationVerificationResult.ServiceUnavailable
                 val data = json.parseToJsonElement(response.body?.string().orEmpty()).jsonObject
                 if (data["resultado"]?.toString()?.trim('"') == "APROBADO") ActivationVerificationResult.Approved

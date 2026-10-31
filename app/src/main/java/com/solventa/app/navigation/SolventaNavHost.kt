@@ -109,7 +109,9 @@ fun SolventaNavHost(
                 val session by container.sessionStore.session.collectAsStateWithLifecycle()
                 ActivationScreen(
                     accessToken = session?.accessToken.orEmpty(),
-                    repository = remember { RemoteActivationRepository(BuildConfig.BFF_MOBILE_URL) },
+                    repository = remember(session?.cliente?.correo) {
+                        RemoteActivationRepository(BuildConfig.BFF_MOBILE_URL, demoEmail = session?.cliente?.correo)
+                    },
                     onApproved = {
                         session?.let {
                             container.sessionStore.save(
