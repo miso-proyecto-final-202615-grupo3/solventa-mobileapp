@@ -26,6 +26,17 @@ class RemoteActivationRepositoryTest {
     }
 
     @Test
+    fun `las muestras de contrato de activacion estan disponibles para la app`() {
+        val inicio = javaClass.classLoader!!.getResource("contracts/activacion/inicio-frames.json")
+            ?.readText()
+        val verificacion = javaClass.classLoader!!.getResource("contracts/activacion/verificacion-aprobada.json")
+            ?.readText()
+
+        assertTrue(inicio?.contains("\"tipo\": \"FRAMES\"") == true)
+        assertTrue(verificacion?.contains("\"resultado\": \"APROBADO\"") == true)
+    }
+
+    @Test
     fun `inicia reto frames con nonce del bff`() = runTest(dispatcher) {
         server.enqueue(
             MockResponse().setResponseCode(201).setBody(
