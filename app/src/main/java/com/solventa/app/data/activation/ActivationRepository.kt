@@ -8,6 +8,8 @@ data class LivenessChallenge(
     val remainingAttempts: Int,
 )
 
+data class CapturedFrame(val content: ByteArray, val capturedAt: String)
+
 sealed interface ActivationStartResult {
     data class ChallengeReady(val challenge: LivenessChallenge) : ActivationStartResult
     data object DeviceAlreadyLinked : ActivationStartResult
@@ -31,5 +33,5 @@ interface ActivationRepository {
         osVersion: String,
     ): ActivationStartResult
 
-    suspend fun verify(accessToken: String, challenge: LivenessChallenge, frames: List<ByteArray>): ActivationVerificationResult
+    suspend fun verify(accessToken: String, challenge: LivenessChallenge, frames: List<CapturedFrame>): ActivationVerificationResult
 }

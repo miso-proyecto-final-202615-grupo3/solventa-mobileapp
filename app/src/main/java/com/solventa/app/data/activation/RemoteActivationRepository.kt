@@ -104,12 +104,14 @@ class RemoteActivationRepository(
         }
     }
 
-    override suspend fun verify(accessToken: String, challenge: LivenessChallenge, frames: List<ByteArray>): ActivationVerificationResult = withContext(ioDispatcher) {
+    override suspend fun verify(accessToken: String, challenge: LivenessChallenge, frames: List<CapturedFrame>): ActivationVerificationResult = withContext(ioDispatcher) {
         if (frames.size != 3) return@withContext ActivationVerificationResult.ServiceUnavailable
+        val timestamps = listOf("inicio", "gesto", "fin").zip(frames).associate { (name, frame) -> name to frame.capturedAt }
+        val metadata = """{"nonce":"${challenge.nonce}","capturas":{"inicio":"${timestamps["inicio"]}","gesto":"${timestamps["gesto"]}","fin":"${timestamps["fin"]}"}}"""
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("nonce", challenge.nonce)
-        listOf("frame_inicio", "frame_gesto", "frame_fin").zip(frames).forEach { (name, bytes) ->
-            body.addFormDataPart(name, "$name.jpg", bytes.toRequestBody("image/jpeg".toMediaType()))
+            .addFormDataPart("metadata", metadata)
+        listOf("frame_inicio", "frame_gesto", "frame_fin").zip(frames).forEach { (name, frame) ->
+            body.addFormDataPart(name, "$name.jpg", frame.content.toRequestBody("image/jpeg".toMediaType()))
         }
         try {
             client.newCall(Request.Builder().url(baseUrl + VERIFY_PATH.format(challenge.sessionId)).header("Authorization", "Bearer $accessToken")

@@ -13,6 +13,7 @@ import com.solventa.app.data.activation.*
 import com.solventa.app.core.device.SharedPreferencesInstallationIdProvider
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import java.time.Instant
 
 @Composable
 fun ActivationScreen(accessToken: String, repository: ActivationRepository, onApproved: () -> Unit) {
@@ -22,9 +23,9 @@ fun ActivationScreen(accessToken: String, repository: ActivationRepository, onAp
     var challenge by remember { mutableStateOf<LivenessChallenge?>(null) }
     var approved by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("Solicita el reto para comenzar.") }
-    val frames = remember { mutableStateListOf<ByteArray>() }
+    val frames = remember { mutableStateListOf<CapturedFrame>() }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
-        bitmap?.let { frames += it.jpeg() }
+        bitmap?.let { frames += CapturedFrame(it.jpeg(), Instant.now().toString()) }
     }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) camera.launch(null) else message = "Debes permitir el uso de la cámara para continuar."
