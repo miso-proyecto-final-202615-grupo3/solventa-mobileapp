@@ -66,7 +66,11 @@ fun ActivationScreen(accessToken: String, repository: ActivationRepository, onAp
                         is ActivationVerificationResult.Rejected -> {
                             frames.clear()
                             challenge = null
-                            message = "La prueba fue rechazada. Puedes iniciar un nuevo intento."
+                            message = if (result.remainingAttempts == 0) {
+                                "La prueba fue rechazada. Alcanzaste el límite de intentos."
+                            } else {
+                                "La prueba fue rechazada${result.reason?.let { ": $it" }.orEmpty()}. Te quedan ${result.remainingAttempts ?: "algunos"} intentos."
+                            }
                         }
                         ActivationVerificationResult.NetworkError -> message = "No se pudo conectar con el servicio."
                         ActivationVerificationResult.ServiceUnavailable -> message = "El servicio no pudo procesar la prueba."

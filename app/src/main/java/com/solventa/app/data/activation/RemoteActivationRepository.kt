@@ -7,7 +7,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -114,7 +117,10 @@ class RemoteActivationRepository(
                 if (!response.isSuccessful) return@use ActivationVerificationResult.ServiceUnavailable
                 val data = json.parseToJsonElement(response.body?.string().orEmpty()).jsonObject
                 if (data["resultado"]?.toString()?.trim('"') == "APROBADO") ActivationVerificationResult.Approved
-                else ActivationVerificationResult.Rejected(data["motivo"]?.toString()?.trim('"'))
+                else ActivationVerificationResult.Rejected(
+                    data["motivo"]?.jsonPrimitive?.contentOrNull,
+                    data["intentos_restantes"]?.jsonPrimitive?.intOrNull,
+                )
             }
         } catch (_: IOException) { ActivationVerificationResult.NetworkError }
         catch (_: Exception) { ActivationVerificationResult.ServiceUnavailable }

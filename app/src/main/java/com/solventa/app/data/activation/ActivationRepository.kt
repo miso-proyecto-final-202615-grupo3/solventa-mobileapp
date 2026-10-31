@@ -17,7 +17,7 @@ sealed interface ActivationStartResult {
 
 sealed interface ActivationVerificationResult {
     data object Approved : ActivationVerificationResult
-    data class Rejected(val reason: String?) : ActivationVerificationResult
+    data class Rejected(val reason: String?, val remainingAttempts: Int?) : ActivationVerificationResult
     data object NetworkError : ActivationVerificationResult
     data object ServiceUnavailable : ActivationVerificationResult
 }
