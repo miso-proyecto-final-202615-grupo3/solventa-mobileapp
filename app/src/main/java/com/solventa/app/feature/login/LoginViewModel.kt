@@ -21,7 +21,7 @@ enum class LoginFieldError { EMAIL_INVALID, PASSWORD_EMPTY }
 enum class LoginFormError { INVALID_CREDENTIALS, NETWORK, SERVICE_UNAVAILABLE }
 
 /** Destino al que debe navegar la UI tras un intento de inicio de sesión. */
-enum class LoginDestination { HOME, BIOMETRIC_OFFER, ACCOUNT_NOT_FOUND }
+enum class LoginDestination { HOME, BIOMETRIC_OFFER, ACCOUNT_NOT_FOUND, ACTIVATION }
 
 data class LoginUiState(
     val email: String = "",
@@ -71,7 +71,10 @@ class LoginViewModel(
             when (val result = authRepository.login(state.email.trim(), state.password, installationId())) {
                 is LoginResult.Success -> {
                     sessionStore.save(result.session)
-                    val destination = if (shouldOfferBiometric(result.session)) {
+                    // Sin vincular (o sin datos del cliente) se activa primero: no se puede saltar (F3.1).
+                    val destination = if (!result.session.cliente.dispositivoVinculado) {
+                        LoginDestination.ACTIVATION
+                    } else if (shouldOfferBiometric(result.session)) {
                         LoginDestination.BIOMETRIC_OFFER
                     } else {
                         LoginDestination.HOME

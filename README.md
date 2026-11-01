@@ -41,12 +41,12 @@ La app puede usar un backend simulado (por defecto) o el **BFF Móvil** real del
 
 ```properties
 solventa.useMockBackend=false
-solventa.bffMobileUrl=http://10.0.2.2:8002
+solventa.bffMobileUrl=http://10.0.2.2:8001
 ```
 
 - `10.0.2.2` es el PC visto desde el emulador; en un teléfono físico usa la IP del PC en la red local.
 - En debug se permite HTTP sin cifrar solo hacia `10.0.2.2` y `localhost` (`src/debug/res/xml/network_security_config.xml`). Release exige HTTPS.
-- En un teléfono por USB, `solventa.bffMobileUrl=http://localhost:8002` junto con `adb reverse tcp:8002 tcp:8002` lleva el tráfico al BFF del PC sin depender de la red Wi-Fi.
+- En un teléfono por USB, `solventa.bffMobileUrl=http://localhost:8001` junto con `adb reverse tcp:8001 tcp:8001` lleva el tráfico al BFF del PC sin depender de la red Wi-Fi.
 - Backend local: en `solventa-backend`, crear `.env` desde `.env.example` con tus credenciales de AWS y ejecutar `docker compose up --build`. La cuenta debe existir en Cognito (registro desde la web o el `bff_web`).
 - Limitaciones actuales del BFF Móvil: solo entrega tokens y el correo. Nombre, estado KYC y vinculación del dispositivo llegarán cuando el MS Identidad exponga el cliente autenticado y exista HU3.1.1; mientras tanto la app asume el teléfono vinculado para poder ofrecer la biometría. "Cuenta no encontrada" no se distingue de "credenciales inválidas" (Cognito no lo revela).
 
@@ -154,12 +154,45 @@ Regla de demostración: cualquier correo con formato válido y una contraseña d
 | Correo | Contraseña | Resultado |
 | --- | --- | --- |
 | `camila.rojas@correo.com` | 6 o más caracteres | Inicio de sesión exitoso, teléfono vinculado: ofrece activar biometría |
-| `andres.perez@correo.com` | 6 o más caracteres | Inicio de sesión exitoso, teléfono sin activar: no ofrece biometría |
+| `andres.perez@correo.com` | 6 o más caracteres | Teléfono sin activar: consentimiento → prueba de vida aprobada → oferta biométrica |
+| `rechazo.vida@correo.com` | 6 o más caracteres | Teléfono sin activar: la prueba de vida se rechaza; al tercer intento se agotan |
+| `sin.consentimiento@correo.com` | 6 o más caracteres | Teléfono sin activar: el backend simulado exige el consentimiento biométrico |
+| `sin.servicio@correo.com` | cualquiera | Servicio no disponible (también en el consentimiento simulado) |
 | cualquier otro correo válido | 6 o más caracteres | Inicio de sesión exitoso, entra como cliente con teléfono vinculado |
 | cualquiera de los anteriores | menos de 6 caracteres | Credenciales inválidas |
 | `sin.cuenta@correo.com` | cualquiera | Cuenta no encontrada |
 | `sin.red@correo.com` | cualquiera | Falla de red |
 | correo con formato inválido | cualquiera | Cuenta no encontrada |
+
+## Activación con prueba de vida (HU3.1.1)
+
+Un teléfono sin vincular no puede saltarse la activación: login → consentimiento biométrico → prueba de vida →
+teléfono vinculado → oferta de huella o rostro (HU3.1.2). Diseño completo en
+[docs/planning/HU3.1.1-plan-tecnico.md](docs/planning/HU3.1.1-plan-tecnico.md) y diagramas en
+[docs/planning/HU3.1.1-diagramas.md](docs/planning/HU3.1.1-diagramas.md).
+
+- **Proveedor:** lo decide el `liveness_adapter` del backend (patrón del experimento HA12). La app solo recibe
+  el tipo de captura: `FRAMES` (propia, por defecto) o `SDK` (Didit, solo demostración).
+- **Captura propia:** CameraX + ML Kit (`CaptureGuideEngine`) guían el gesto que pide el servidor y toman 3 fotos
+  (inicio, gesto, fin) solo en memoria; se sobrescriben con ceros al terminar y la pantalla usa `FLAG_SECURE`.
+- **Strategy + Factory:** `CaptureLauncherFactory` elige la estrategia (`OwnCaptureLauncher`,
+  `SimulatedDiditCaptureLauncher` o `SdkDiditCaptureLauncher`) según la sesión.
+- **Consentimiento:** simulado hasta que HU3.1.3 entregue su endpoint (excepción transitoria; responsable asr88).
+
+Propiedades de Gradle (en `~/.gradle/gradle.properties` o con `-P`):
+
+| Propiedad | Por defecto | Uso |
+| --- | --- | --- |
+| `solventa.useMockConsent` | `true` | Consentimiento simulado; `false` usa el endpoint de HU3.1.3 |
+| `solventa.mockCaptureType` | `FRAMES` | Con el backend simulado, `SDK` simula Didit |
+| `solventa.diditSdkEnabled` | `false` | SDK real de Didit (demo, costo cero); si no, lanzador simulado |
+| `solventa.demoActivationEmail` | vacío | Solo debug: correo para el modo demo del BFF sin JWT (`X-Demo-Correo`) |
+
+El SDK de Didit (`me.didit:didit-sdk-core`) se descarga de su repositorio Maven, restringido al grupo `me.didit`
+en `settings.gradle.kts`. Aumenta el APK de debug a ~67 MB junto con CameraX y ML Kit.
+
+Pendiente de calibrar en un dispositivo real: el signo de `headEulerY` para "girar a la izquierda"
+(`GuideConfig.turnLeftSign`) frente al que usa MediaPipe en el backend.
 
 ## Acceso biométrico (HU3.1.2)
 

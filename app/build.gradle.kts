@@ -7,14 +7,23 @@ plugins {
 
 // Backend que usa la app. Se cambia sin tocar código, p. ej. en ~/.gradle/gradle.properties:
 //   solventa.useMockBackend=false
-//   solventa.bffMobileUrl=http://10.0.2.2:8002   (debug: BFF Móvil en docker compose, visto desde el emulador)
+//   solventa.bffMobileUrl=http://10.0.2.2:8001   (debug: BFF Móvil en docker compose, visto desde el emulador)
 //   solventa.release.bffMobileUrl=https://<api-id>.execute-api.us-east-1.amazonaws.com   (release: API Gateway)
 // Debug usa el backend simulado salvo que se indique lo contrario; release usa el real salvo que se pida el simulado.
+// Activación móvil (HU3.1.1):
+//   solventa.useMockConsent=true        consentimiento biométrico simulado hasta que HU3.1.3 entregue su endpoint
+//   solventa.mockCaptureType=FRAMES|SDK  tipo de captura del backend simulado
+//   solventa.diditSdkEnabled=false       SDK real de Didit (solo demostración); si no, lanzador simulado
+//   solventa.demoActivationEmail=        correo para el modo demo del BFF sin JWT (solo debug, nunca en release)
 val useMockBackendProperty = providers.gradleProperty("solventa.useMockBackend").map { it.toBoolean() }
 val useMockBackendDebug = useMockBackendProperty.orElse(true).get()
 val useMockBackendRelease = useMockBackendProperty.orElse(false).get()
-val bffMobileUrl = providers.gradleProperty("solventa.bffMobileUrl").orElse("http://10.0.2.2:8002").get()
+val bffMobileUrl = providers.gradleProperty("solventa.bffMobileUrl").orElse("http://10.0.2.2:8001").get()
 val releaseBffMobileUrl = providers.gradleProperty("solventa.release.bffMobileUrl").orElse("").get().trim()
+val useMockConsent = providers.gradleProperty("solventa.useMockConsent").map { it.toBoolean() }.orElse(true).get()
+val mockCaptureType = providers.gradleProperty("solventa.mockCaptureType").orElse("FRAMES").get()
+val diditSdkEnabled = providers.gradleProperty("solventa.diditSdkEnabled").map { it.toBoolean() }.orElse(false).get()
+val demoActivationEmail = providers.gradleProperty("solventa.demoActivationEmail").orElse("").get().trim()
 
 android {
     namespace = "com.solventa.app"
@@ -31,16 +40,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "WEB_SIGNUP_URL", "\"https://solventa.example/registro\"")
+        buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsent.toString())
+        buildConfigField("String", "MOCK_CAPTURE_TYPE", "\"$mockCaptureType\"")
+        buildConfigField("boolean", "DIDIT_SDK_ENABLED", diditSdkEnabled.toString())
     }
 
     buildTypes {
         debug {
             buildConfigField("boolean", "USE_MOCK_BACKEND", useMockBackendDebug.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$bffMobileUrl\"")
+            buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"$demoActivationEmail\"")
         }
         release {
             buildConfigField("boolean", "USE_MOCK_BACKEND", useMockBackendRelease.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$releaseBffMobileUrl\"")
+            buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -93,6 +107,12 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.face.detection)
+    implementation(libs.didit.sdk.core)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

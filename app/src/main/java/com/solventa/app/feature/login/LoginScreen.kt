@@ -44,6 +44,7 @@ object LoginTestTags {
     const val SUBMIT = "login_submit"
     const val FORM_ERROR = "login_form_error"
     const val BIOMETRIC_ENTRY = "login_biometric_entry"
+    const val WEB_SIGNUP = "login_web_signup"
 }
 
 @Composable
@@ -52,6 +53,8 @@ fun LoginRoute(
     onLoggedIn: () -> Unit,
     onBiometricOffer: () -> Unit,
     onAccountNotFound: () -> Unit,
+    onActivationRequired: () -> Unit = onLoggedIn,
+    onGoToWebSignup: () -> Unit = {},
     biometricEntryAvailable: Boolean = false,
     onBiometricEntry: () -> Unit = {},
 ) {
@@ -62,6 +65,7 @@ fun LoginRoute(
             LoginDestination.HOME -> onLoggedIn()
             LoginDestination.BIOMETRIC_OFFER -> onBiometricOffer()
             LoginDestination.ACCOUNT_NOT_FOUND -> onAccountNotFound()
+            LoginDestination.ACTIVATION -> onActivationRequired()
             null -> return@LaunchedEffect
         }
         viewModel.onDestinationHandled()
@@ -75,6 +79,7 @@ fun LoginRoute(
         onSubmit = viewModel::onSubmit,
         showBiometricEntry = biometricEntryAvailable,
         onBiometricEntry = onBiometricEntry,
+        onGoToWebSignup = onGoToWebSignup,
     )
 }
 
@@ -88,6 +93,7 @@ fun LoginScreen(
     modifier: Modifier = Modifier,
     showBiometricEntry: Boolean = false,
     onBiometricEntry: () -> Unit = {},
+    onGoToWebSignup: () -> Unit = {},
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -187,6 +193,16 @@ fun LoginScreen(
                 onClick = onBiometricEntry,
                 modifier = Modifier.testTag(LoginTestTags.BIOMETRIC_ENTRY),
             )
+        }
+        // Cognito no revela si la cuenta existe: el enlace al registro web se muestra siempre (CA1).
+        Spacer(Modifier.height(8.dp))
+        TextButton(
+            onClick = onGoToWebSignup,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(LoginTestTags.WEB_SIGNUP),
+        ) {
+            Text(stringResource(R.string.login_no_account))
         }
     }
 }

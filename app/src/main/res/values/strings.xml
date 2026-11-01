@@ -27,7 +27,7 @@
     <!-- Inicio (provisional) -->
     <string name="home_greeting">Hola, %1$s</string>
     <string name="home_greeting_generic">Hola</string>
-    <string name="home_pending_activation">Tu sesión está activa. El siguiente paso es activar este teléfono con tu cédula y una prueba de vida.</string>
+    <string name="home_pending_activation">Tu sesión está activa. El siguiente paso es activar este teléfono con una prueba de vida.</string>
     <string name="home_device_linked">Tu teléfono está vinculado a tu cuenta.</string>
     <string name="home_biometric_hint">Puedes activar el acceso con huella o rostro cuando quieras en Perfil y seguridad.</string>
     <string name="home_open_security">Perfil y seguridad</string>
@@ -73,4 +73,71 @@
     <string name="security_biometric_label">Entrar con huella o rostro</string>
     <string name="security_biometric_description">Usa la biometría de tu teléfono en lugar de la contraseña.</string>
     <string name="security_biometric_unavailable">Configura una huella o rostro en los ajustes del teléfono para activarlo.</string>
+
+    <!-- Activación móvil (HU3.1.1) y consentimiento biométrico (HU3.1.3) -->
+    <string name="home_activate_device">Activar este teléfono</string>
+    <string name="login_no_account">¿Aún no tienes cuenta? Regístrate en la web</string>
+    <string name="consent_section">privacidad</string>
+    <string name="consent_title">Antes de verificar tu identidad</string>
+    <string name="consent_body">Para activar este teléfono tomaremos imágenes de tu rostro mientras haces un gesto (parpadear o girar la cabeza) y verificaremos que eres una persona real.</string>
+    <string name="consent_purpose">Usamos estas imágenes solo para verificar tu identidad y vincular este teléfono a tu cuenta. No se guardan en el teléfono y se descartan después de la verificación.</string>
+    <string name="consent_version">Versión del texto: %1$s</string>
+    <string name="consent_checkbox">Acepto el uso de mis datos biométricos para esta verificación.</string>
+    <string name="consent_accept">Aceptar y continuar</string>
+    <string name="consent_reject">No acepto</string>
+    <string name="consent_error_network">No pudimos conectarnos. Revisa tu conexión e intenta de nuevo.</string>
+    <string name="consent_error_service">No pudimos registrar tu decisión. Intenta de nuevo en unos minutos.</string>
+    <string name="consent_retry">Intentar de nuevo</string>
+    <string name="consent_declined_title">No podemos activar este teléfono</string>
+    <string name="consent_declined_body">Sin tu consentimiento no podemos hacer la verificación biométrica, así que no es posible activar el acceso móvil por esta vía.</string>
+    <string name="consent_declined_back">Volver al inicio de sesión</string>
+    <string name="activation_section">activación</string>
+    <string name="activation_intro_title">Activa este teléfono</string>
+    <string name="activation_intro_body">Verificaremos que eres tú con una prueba de vida. Te pediremos un gesto sencillo frente a la cámara frontal.</string>
+    <string name="activation_intro_tips">Busca buena luz, quítate lentes oscuros o tapabocas y sostén el teléfono a la altura de tu cara.</string>
+    <string name="activation_intro_start">Empezar la verificación</string>
+    <string name="activation_permission_denied">Necesitamos la cámara para la prueba de vida.</string>
+    <string name="activation_open_settings">Abrir ajustes</string>
+    <string name="activation_no_front_camera">Este teléfono no tiene cámara frontal, así que no podemos hacer la prueba de vida.</string>
+    <string name="activation_starting">Preparando la verificación…</string>
+    <string name="activation_submitting">Verificando…</string>
+    <string name="activation_launching_sdk">Abriendo la verificación…</string>
+    <string name="guide_waiting_face">Ubica tu rostro dentro del óvalo</string>
+    <string name="guide_no_face">No vemos tu rostro</string>
+    <string name="guide_too_far">Acércate un poco</string>
+    <string name="guide_not_centered">Centra tu rostro y mira de frente</string>
+    <string name="guide_multiple_faces">Solo debe haber una persona frente a la cámara</string>
+    <string name="guide_hold_still">Quédate quieto</string>
+    <string name="guide_blink">Parpadea</string>
+    <string name="guide_turn_left">Gira la cabeza a la izquierda</string>
+    <string name="guide_turn_right">Gira la cabeza a la derecha</string>
+    <string name="guide_return_center">Vuelve a mirar de frente</string>
+    <string name="guide_completed">Listo</string>
+    <string name="activation_cancel">Cancelar</string>
+    <string name="result_approved_title">Tu teléfono quedó vinculado</string>
+    <string name="result_approved_body">Ya puedes usar Solventa en este teléfono.</string>
+    <string name="result_continue">Continuar</string>
+    <string name="result_rejected_title">No pudimos verificarte</string>
+    <string name="result_rejected_body">Revisa la luz y sigue las instrucciones en pantalla.</string>
+    <plurals name="result_remaining">
+        <item quantity="one">Te queda %1$d intento.</item>
+        <item quantity="other">Te quedan %1$d intentos.</item>
+    </plurals>
+    <string name="result_retry">Reintentar</string>
+    <string name="result_exhausted_title">Superaste los intentos permitidos</string>
+    <string name="result_exhausted_body">Por seguridad bloqueamos la activación por 24 horas. Si necesitas ayuda, comunícate con soporte.</string>
+    <string name="result_back_login">Volver al inicio de sesión</string>
+    <string name="result_network_title">No pudimos conectarnos</string>
+    <string name="result_network_body">Revisa tu conexión. Este intento no cuenta.</string>
+    <string name="result_service_title">La verificación no está disponible</string>
+    <string name="result_service_body">Intenta de nuevo en unos minutos. Este intento no cuenta.</string>
+    <string name="result_local_title">No alcanzamos a terminar</string>
+    <string name="result_local_body">Hazlo con calma siguiendo las instrucciones. Este intento no cuenta.</string>
+    <string name="result_invalid_capture_title">Las fotos no se pudieron usar</string>
+    <string name="result_invalid_capture_body">Intenta de nuevo con buena luz. Este intento no cuenta.</string>
+    <string name="didit_simulated_title">Verificación Didit (simulada)</string>
+    <string name="didit_simulated_body">Este es el lanzador de demostración del SDK de Didit. No usa la red ni genera costo.</string>
+    <string name="didit_simulated_complete">Completar</string>
+    <string name="didit_simulated_cancel">Cancelar</string>
+    <string name="biometric_consent_terms_version" translatable="false">1.0</string>
 </resources>

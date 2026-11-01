@@ -64,7 +64,7 @@ fun HomeScreen(
         }
         Spacer(Modifier.height(32.dp))
         if (!deviceLinked) {
-            SolventaPrimaryButton(text = "Activar este teléfono", onClick = onActivateDevice)
+            SolventaPrimaryButton(text = stringResource(R.string.home_activate_device), onClick = onActivateDevice)
             Spacer(Modifier.height(12.dp))
         }
         SolventaPrimaryButton(
