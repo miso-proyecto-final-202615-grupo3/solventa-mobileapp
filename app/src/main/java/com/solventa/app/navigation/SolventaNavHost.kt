@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -22,6 +23,12 @@ import com.solventa.app.feature.biometric.SecuritySettingsViewModel
 import com.solventa.app.feature.biometric.UnlockRoute
 import com.solventa.app.feature.biometric.UnlockViewModel
 import com.solventa.app.feature.home.HomeScreen
+import com.solventa.app.R
+import com.solventa.app.feature.activation.ActivationRoute
+import com.solventa.app.feature.activation.ActivationViewModel
+import com.solventa.app.feature.consent.BiometricConsentRoute
+import com.solventa.app.feature.consent.BiometricConsentViewModel
+import com.solventa.app.feature.consent.ConsentDeclinedScreen
 import com.solventa.app.feature.login.LoginRoute
 import com.solventa.app.feature.login.LoginViewModel
 
@@ -31,6 +38,9 @@ object Routes {
     const val BIOMETRIC_OFFER = "biometric-offer"
     const val HOME = "home"
     const val SECURITY = "security"
+    const val BIOMETRIC_CONSENT = "biometric-consent"
+    const val CONSENT_DECLINED = "consent-declined"
+    const val ACTIVATION = "activation"
 }
 
 @Composable
@@ -51,18 +61,26 @@ fun SolventaNavHost(
         popUpTo(navController.graph.id) { inclusive = true }
     }
 
+    // Consentimiento biométrico → activación: el teléfono sin vincular no puede saltarse este flujo.
+    fun goToActivationFlow() = navController.navigate(Routes.BIOMETRIC_CONSENT) {
+        popUpTo(navController.graph.id) { inclusive = true }
+    }
+
     Box(modifier) {
         NavHost(navController = navController, startDestination = startDestination) {
             composable(Routes.LOGIN) {
+                val uriHandler = LocalUriHandler.current
                 LoginRoute(
                     viewModel = viewModel(factory = LoginViewModel.factory(container)),
                     onLoggedIn = ::goToHome,
+                    onActivationRequired = ::goToActivationFlow,
                     onBiometricOffer = {
                         navController.navigate(Routes.BIOMETRIC_OFFER) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
                     },
                     onAccountNotFound = { navController.navigate(Routes.ACCOUNT_NOT_FOUND) },
+                    onGoToWebSignup = { uriHandler.openUri(BuildConfig.WEB_SIGNUP_URL) },
                     // La biometría sigue configurada tras cerrar sesión: se puede entrar sin contraseña.
                     biometricEntryAvailable = container.biometricVault.isEnabled(),
                     onBiometricEntry = container.appLockManager::lock,
@@ -88,11 +106,57 @@ fun SolventaNavHost(
                     clientName = session?.cliente?.nombre.orEmpty(),
                     deviceLinked = session?.cliente?.dispositivoVinculado == true,
                     showBiometricHint = !biometricEnabled && container.biometricSettings.offerDeclined,
+                    onActivateDevice = ::goToActivationFlow,
                     onOpenSecurity = { navController.navigate(Routes.SECURITY) },
                     onLogout = {
                         container.logout()
                         goToLogin()
                     },
+                )
+            }
+            composable(Routes.BIOMETRIC_CONSENT) {
+                val termsVersion = stringResource(R.string.biometric_consent_terms_version)
+                BiometricConsentRoute(
+                    viewModel = viewModel(factory = BiometricConsentViewModel.factory(container, termsVersion)),
+                    onAccepted = {
+                        navController.navigate(Routes.ACTIVATION) {
+                            popUpTo(Routes.BIOMETRIC_CONSENT) { inclusive = true }
+                        }
+                    },
+                    onDeclined = {
+                        navController.navigate(Routes.CONSENT_DECLINED) {
+                            popUpTo(Routes.BIOMETRIC_CONSENT) { inclusive = true }
+                        }
+                    },
+                    onSessionExpired = {
+                        container.logout()
+                        goToLogin()
+                    },
+                )
+            }
+            composable(Routes.CONSENT_DECLINED) {
+                ConsentDeclinedScreen(onBackToLogin = {
+                    container.logout()
+                    goToLogin()
+                })
+            }
+            composable(Routes.ACTIVATION) {
+                val uriHandler = LocalUriHandler.current
+                ActivationRoute(
+                    viewModel = viewModel(factory = ActivationViewModel.factory(container)),
+                    launchers = container.captureLauncherFactory,
+                    onBiometricOffer = {
+                        navController.navigate(Routes.BIOMETRIC_OFFER) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    },
+                    onHome = ::goToHome,
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
+                    onAccountNotFound = { uriHandler.openUri(BuildConfig.WEB_SIGNUP_URL) },
+                    onConsentRequired = ::goToActivationFlow,
                 )
             }
             composable(Routes.SECURITY) {

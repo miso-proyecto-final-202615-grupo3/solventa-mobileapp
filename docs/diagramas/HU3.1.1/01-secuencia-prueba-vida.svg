@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1160" viewBox="0 0 1900 1160" role="img" aria-labelledby="title desc">
+  <title id="title">Secuencia de activación con selección de proveedor de prueba de vida</title>
+  <desc id="desc">El proveedor se elige en tiempo de ejecución en liveness_adapter con la configuración activa y la fábrica; queda fijado en la sesión. La app, el BFF y el MS Identidad no conocen al proveedor.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#35506b"/></marker>
+    <style>
+      text{font-family:Arial,sans-serif;fill:#16263a}
+      .title{font-size:28px;font-weight:700}
+      .subtitle{font-size:15px;fill:#4a5c70}
+      .label{font-size:15px;font-weight:700;text-anchor:middle}
+      .sub{font-size:12px;text-anchor:middle;fill:#4a5c70}
+      .stereo{font-size:12px;font-style:italic;text-anchor:middle;fill:#6b5200}
+      .msg{font-size:13px;text-anchor:middle;paint-order:stroke;stroke:#ffffff;stroke-width:5px}
+      .ret{font-size:13px;text-anchor:middle;font-style:italic;fill:#35506b;paint-order:stroke;stroke:#ffffff;stroke-width:5px}
+      .num{font-weight:700}
+      .lane{stroke:#c8d2dc;stroke-width:2;stroke-dasharray:7 7}
+      .arrow{stroke:#35506b;stroke-width:2;marker-end:url(#arrow)}
+      .back{stroke:#35506b;stroke-width:1.6;stroke-dasharray:6 5;marker-end:url(#arrow)}
+      .new{fill:#d9f4df;stroke:#208746;stroke-width:2}
+      .base{fill:#eff3f7;stroke:#5e7184;stroke-width:2}
+      .pattern{fill:#fff4cf;stroke:#b88500;stroke-width:2.5}
+      .phase{fill:none;stroke:#9fb0c0;stroke-width:1.5}
+      .phaseTag{fill:#35506b}
+      .phaseText{font-size:13px;font-weight:700;fill:#ffffff}
+      .noteBox{fill:#fffbea;stroke:#d8c27a;stroke-width:1.5}
+      .note{font-size:13px;fill:#4a5c70}
+      .key{font-size:14px}
+      .keyBold{font-size:14px;font-weight:700}
+      .legendText{font-size:13px}
+    </style>
+  </defs>
+  <rect width="1900" height="1160" fill="#ffffff"/>
+
+  <text x="30" y="46" class="title">Activación móvil: el proveedor se elige en tiempo de ejecución</text>
+  <text x="30" y="72" class="subtitle">HU3.1.1 · Captura FRAMES con el proveedor propio (activo por defecto). Con Didit cambia solo lo resaltado en amarillo.</text>
+
+  <rect x="1290" y="24" width="26" height="18" rx="4" class="new"/><text x="1324" y="38" class="legendText">Nuevo en HU3.1.1</text>
+  <rect x="1460" y="24" width="26" height="18" rx="4" class="pattern"/><text x="1494" y="38" class="legendText">Strategy / Factory / configuración</text>
+  <line x1="1290" y1="61" x2="1330" y2="61" class="arrow"/><text x="1340" y="66" class="legendText">llamada</text>
+  <line x1="1430" y1="61" x2="1470" y2="61" class="back"/><text x="1480" y="66" class="legendText">respuesta</text>
+
+  <!-- Participantes -->
+  <rect x="20" y="90" width="140" height="62" rx="9" class="base"/><text x="90" y="118" class="label">Operador</text><text x="90" y="138" class="sub">administración</text>
+  <rect x="190" y="90" width="160" height="62" rx="9" class="new"/><text x="270" y="118" class="label">App Android</text><text x="270" y="138" class="sub">captura</text>
+  <rect x="370" y="90" width="160" height="62" rx="9" class="new"/><text x="450" y="118" class="label">bff_mobile</text><text x="450" y="138" class="sub">valida token</text>
+  <rect x="550" y="90" width="160" height="62" rx="9" class="new"/><text x="630" y="118" class="label">identity_service</text><text x="630" y="138" class="sub">intentos · vínculo</text>
+  <rect x="730" y="90" width="140" height="62" rx="9" class="base"/><text x="800" y="118" class="label">PostgreSQL</text><text x="800" y="138" class="sub">esquema identity</text>
+  <rect x="890" y="90" width="180" height="62" rx="9" class="new"/><text x="980" y="118" class="label">liveness_adapter</text><text x="980" y="138" class="sub">casos de uso</text>
+  <rect x="1090" y="90" width="180" height="62" rx="9" class="pattern"/><text x="1180" y="106" class="stereo">configuración (Redis)</text><text x="1180" y="125" class="label" style="font-size:14px">ActiveProvider</text><text x="1180" y="144" class="label" style="font-size:14px">Configuration</text>
+  <rect x="1290" y="90" width="180" height="62" rx="9" class="pattern"/><text x="1380" y="111" class="stereo">«Factory»</text><text x="1380" y="138" class="label">ProviderFactory</text>
+  <rect x="1490" y="90" width="230" height="62" rx="9" class="pattern"/><text x="1605" y="111" class="stereo">«Strategy» LivenessProvider</text><text x="1605" y="132" class="label">PropioProvider</text><text x="1605" y="147" class="sub">o DiditProvider (demo)</text>
+
+  <g class="lane">
+    <line x1="90" y1="152" x2="90" y2="1050"/><line x1="270" y1="152" x2="270" y2="1050"/><line x1="450" y1="152" x2="450" y2="1050"/>
+    <line x1="630" y1="152" x2="630" y2="1050"/><line x1="800" y1="152" x2="800" y2="1050"/><line x1="980" y1="152" x2="980" y2="1050"/>
+    <line x1="1180" y1="152" x2="1180" y2="1050"/><line x1="1380" y1="152" x2="1380" y2="1050"/><line x1="1605" y1="152" x2="1605" y2="1050"/>
+  </g>
+
+  <!-- Fase 0 -->
+  <rect x="12" y="170" width="1716" height="98" rx="8" class="phase"/>
+  <rect x="12" y="170" width="350" height="24" rx="6" class="phaseTag"/><text x="24" y="187" class="phaseText">0 · Elegir proveedor activo (opcional, en caliente)</text>
+  <line x1="90" y1="222" x2="980" y2="222" class="arrow"/><text x="535" y="214" class="msg"><tspan class="num">1.</tspan> PUT /admin/liveness-provider {"provider": "propio" | "didit"} + X-Admin-Token</text>
+  <line x1="980" y1="252" x2="1180" y2="252" class="arrow"/><text x="1080" y="244" class="msg"><tspan class="num">2.</tspan> set_active_provider()</text>
+
+  <!-- Fase 1 -->
+  <rect x="12" y="284" width="1716" height="358" rx="8" class="phase"/>
+  <rect x="12" y="284" width="200" height="24" rx="6" class="phaseTag"/><text x="24" y="301" class="phaseText">1 · Crear sesión de activación</text>
+  <line x1="270" y1="334" x2="450" y2="334" class="arrow"/><text x="360" y="326" class="msg"><tspan class="num">3.</tspan> POST /activacion/sesiones</text>
+  <line x1="450" y1="364" x2="630" y2="364" class="arrow"/><text x="540" y="356" class="msg"><tspan class="num">4.</tspan> correo del token</text>
+  <line x1="630" y1="394" x2="800" y2="394" class="arrow"/><text x="715" y="386" class="msg"><tspan class="num">5.</tspan> intentos · anula previa</text>
+  <line x1="630" y1="424" x2="980" y2="424" class="arrow"/><text x="805" y="416" class="msg"><tspan class="num">6.</tspan> POST /liveness/sessions</text>
+  <line x1="980" y1="454" x2="1180" y2="454" class="arrow"/><text x="1080" y="446" class="msg"><tspan class="num">7.</tspan> get_active_provider()</text>
+  <line x1="1180" y1="482" x2="980" y2="482" class="back"/><text x="1080" y="476" class="ret">"propio"</text>
+  <line x1="980" y1="512" x2="1380" y2="512" class="arrow"/><text x="1180" y="504" class="msg"><tspan class="num">8.</tspan> get("propio")</text>
+  <line x1="1380" y1="540" x2="980" y2="540" class="back"/><text x="1180" y="534" class="ret">PropioProvider</text>
+  <line x1="980" y1="570" x2="1605" y2="570" class="arrow"/><text x="1292" y="562" class="msg"><tspan class="num">9.</tspan> start_session() → sesión fijada a "propio"</text>
+  <line x1="1605" y1="598" x2="980" y2="598" class="back"/><text x="1292" y="592" class="ret">reto: gesto al azar + nonce</text>
+  <line x1="980" y1="626" x2="270" y2="626" class="back"/><text x="625" y="620" class="ret">10. 201 captura.tipo = FRAMES + reto, sin nombre del proveedor (vía Identity y BFF)</text>
+
+  <!-- Fase 2 -->
+  <rect x="12" y="658" width="1716" height="72" rx="8" class="phase"/>
+  <rect x="12" y="658" width="160" height="24" rx="6" class="phaseTag"/><text x="24" y="675" class="phaseText">2 · Capturar en la app</text>
+  <rect x="190" y="688" width="560" height="32" rx="6" class="noteBox"/>
+  <text x="470" y="709" class="note" text-anchor="middle">11. CameraX + ML Kit guían el gesto y toman 3 fotos (inicio · gesto · fin) solo en memoria</text>
+
+  <!-- Fase 3 -->
+  <rect x="12" y="746" width="1716" height="300" rx="8" class="phase"/>
+  <rect x="12" y="746" width="200" height="24" rx="6" class="phaseTag"/><text x="24" y="763" class="phaseText">3 · Verificar y vincular</text>
+  <line x1="270" y1="796" x2="450" y2="796" class="arrow"/><text x="360" y="788" class="msg"><tspan class="num">12.</tspan> 3 JPEG + nonce</text>
+  <line x1="450" y1="826" x2="630" y2="826" class="arrow"/><text x="540" y="818" class="msg"><tspan class="num">13.</tspan> reenvía evidencia</text>
+  <line x1="630" y1="856" x2="800" y2="856" class="arrow"/><text x="715" y="848" class="msg"><tspan class="num">14.</tspan> intento EN_CURSO</text>
+  <line x1="630" y1="886" x2="980" y2="886" class="arrow"/><text x="805" y="878" class="msg"><tspan class="num">15.</tspan> POST /liveness/verifications</text>
+  <line x1="980" y1="916" x2="1380" y2="916" class="arrow"/><text x="1180" y="908" class="msg"><tspan class="num">16.</tspan> get(proveedor de la sesión)</text>
+  <line x1="980" y1="946" x2="1605" y2="946" class="arrow"/><text x="1292" y="938" class="msg"><tspan class="num">17.</tspan> verify(frames, nonce)</text>
+  <line x1="1605" y1="974" x2="980" y2="974" class="back"/><text x="1292" y="968" class="ret">approved | rejected + motivo</text>
+  <line x1="980" y1="1000" x2="630" y2="1000" class="back"/><text x="805" y="994" class="ret">18. {verification_id, status, correlation_id}</text>
+  <line x1="630" y1="1020" x2="800" y2="1020" class="arrow"/><text x="715" y="1014" class="msg"><tspan class="num">19.</tspan> APROBADO + vínculo</text>
+  <line x1="630" y1="1038" x2="270" y2="1038" class="back"/><text x="450" y="1033" class="ret">20. 200 APROBADO · dispositivo vinculado</text>
+
+  <!-- Lectura -->
+  <rect x="12" y="1064" width="1716" height="84" rx="10" fill="#f7f9fb" stroke="#d3dce5"/>
+  <text x="30" y="1090" class="keyBold">Selección en tiempo de ejecución:</text>
+  <text x="272" y="1090" class="key">pasos 7 a 9 (configuración activa → fábrica → estrategia). Pasos 1 y 2: el cambio de proveedor se hace por endpoint, sin redesplegar.</text>
+  <text x="30" y="1116" class="keyBold">Proveedor fijado en la sesión:</text>
+  <text x="246" y="1116" class="key">paso 16 usa el proveedor con el que se creó la sesión, aunque el activo cambie mientras la persona captura.</text>
+  <text x="30" y="1140" class="keyBold">Contrato normalizado:</text>
+  <text x="190" y="1140" class="key">pasos 10 y 18 nunca exponen el proveedor; con Didit la app recibe captura.tipo = SDK y el resto del flujo es el mismo.</text>
+</svg>

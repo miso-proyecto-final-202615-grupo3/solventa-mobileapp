@@ -10,6 +10,20 @@ import com.solventa.app.core.biometric.BiometricSettings
 import com.solventa.app.core.biometric.BiometricVault
 import com.solventa.app.core.biometric.KeystoreBiometricVault
 import com.solventa.app.core.biometric.SharedPreferencesBiometricSettings
+import com.solventa.app.core.device.AndroidDeviceInfoProvider
+import com.solventa.app.core.device.DeviceInfoProvider
+import com.solventa.app.core.device.InstallationIdProvider
+import com.solventa.app.core.liveness.launcher.CaptureLauncherFactory
+import com.solventa.app.core.liveness.launcher.OwnCaptureLauncher
+import com.solventa.app.core.liveness.launcher.SdkDiditCaptureLauncher
+import com.solventa.app.core.liveness.launcher.SimulatedDiditCaptureLauncher
+import com.solventa.app.data.activation.ActivationRepository
+import com.solventa.app.data.activation.MockActivationRepository
+import com.solventa.app.data.activation.RemoteActivationRepository
+import com.solventa.app.data.consent.BiometricConsentRepository
+import com.solventa.app.data.consent.MockBiometricConsentRepository
+import com.solventa.app.data.consent.RemoteBiometricConsentRepository
+import com.solventa.app.core.device.SharedPreferencesInstallationIdProvider
 import com.solventa.app.data.auth.AuthRepository
 import com.solventa.app.data.auth.MockAuthRepository
 import com.solventa.app.data.auth.RemoteAuthRepository
@@ -19,6 +33,7 @@ import com.solventa.app.data.session.SessionStore
 
 /** Contenedor de dependencias manual; suficiente para el tamaño actual de la app. */
 class AppContainer(context: Context) {
+    val installationIdProvider: InstallationIdProvider = SharedPreferencesInstallationIdProvider(context)
     /** Backend simulado o BFF Móvil real, según la propiedad de Gradle `solventa.useMockBackend`. */
     val authRepository: AuthRepository =
         if (BuildConfig.USE_MOCK_BACKEND) {
@@ -28,6 +43,40 @@ class AppContainer(context: Context) {
         }
 
     val sessionStore: SessionStore = InMemorySessionStore()
+
+    val deviceInfoProvider: DeviceInfoProvider = AndroidDeviceInfoProvider(installationIdProvider)
+
+    private val currentEmail: () -> String? = { sessionStore.session.value?.cliente?.correo }
+
+    /** Activación (HU3.1.1): simulada o contra el BFF Móvil según `solventa.useMockBackend`. */
+    val activationRepository: ActivationRepository =
+        if (BuildConfig.USE_MOCK_BACKEND) {
+            MockActivationRepository(currentEmail, captureType = BuildConfig.MOCK_CAPTURE_TYPE)
+        } else {
+            RemoteActivationRepository(
+                baseUrl = BuildConfig.BFF_MOBILE_URL,
+                demoEmail = BuildConfig.DEMO_ACTIVATION_EMAIL.takeIf { it.isNotBlank() },
+            )
+        }
+
+    /**
+     * Consentimiento biométrico (HU3.1.3): real contra el BFF Móvil; simulado solo junto con el backend simulado
+     * o si se pide con `solventa.useMockConsent=true`.
+     */
+    val biometricConsentRepository: BiometricConsentRepository =
+        if (BuildConfig.USE_MOCK_CONSENT) {
+            MockBiometricConsentRepository(currentEmail)
+        } else {
+            RemoteBiometricConsentRepository(BuildConfig.BFF_MOBILE_URL)
+        }
+
+    /** Estrategias de captura por tipo; Didit real solo con `solventa.diditSdkEnabled=true`. */
+    val captureLauncherFactory = CaptureLauncherFactory(
+        listOf(
+            OwnCaptureLauncher,
+            if (BuildConfig.DIDIT_SDK_ENABLED) SdkDiditCaptureLauncher(context) else SimulatedDiditCaptureLauncher(),
+        ),
+    )
 
     val biometricSettings: BiometricSettings = SharedPreferencesBiometricSettings(context)
 

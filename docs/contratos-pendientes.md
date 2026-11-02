@@ -1,41 +1,28 @@
 # Contratos pendientes con backend (BFF Móvil)
 
 La app ya puede autenticarse contra el BFF Móvil (`RemoteAuthRepository`); el backend simulado sigue disponible.
-Estado de cada pregunta al 2026-10-16.
+Estado de cada pregunta al 2026-10-31. El contrato canónico de HU3.1.1 está en la sección 3 de `solventa-backend/docs/planning/HU3.1.1-plan-tecnico.md`; su copia de consumo, en la sección 4 de [planning/HU3.1.1-plan-tecnico.md](planning/HU3.1.1-plan-tecnico.md).
 
 ## Inicio de sesión
 1. ✅ Resuelta: la app inicia sesión contra el BFF Móvil, `POST /api/v1/bff-mobile/auth/login` con `{correo, password}`. Responde `access_token`, `refresh_token`, `expires_in`, `token_type` y `correo`. El BFF llama al MS Identidad, que autentica en Cognito.
-2. ⏳ Pendiente: el MS Identidad no expone el cliente autenticado (id, nombre, `estado_kyc`), y `dispositivoVinculado` depende de HU3.1.1. Propuesta: `GET /clientes/me` en el MS Identidad a partir del token, consumido por el BFF Móvil en el login.
-3. ✅ Resuelta: Cognito (`prevent_user_existence_errors`) y el MS Identidad responden 401 en ambos casos, así que con backend real se muestra el mensaje genérico de credenciales inválidas.
-4. ⏳ URL del registro web para el enlace de "Ir al registro web".
+2. ✅ Implementada en HU3.1.1: el login recibe `installation_id` opcional y devuelve el bloque opcional `cliente` (`id`, `nombre`, `estado_kyc`, `dispositivo_vinculado`), que el BFF obtiene de `GET /clientes/resumen-movil` del MS Identidad. Sin bloque `cliente`, la app asume **no vinculado** y va a la activación.
+3. ✅ Resuelta: Cognito (`prevent_user_existence_errors`) y el MS Identidad responden 401 en ambos casos, así que con backend real se muestra el mensaje genérico de credenciales inválidas. Por eso el login muestra siempre el enlace al registro web.
+4. ⏳ URL del registro web para el enlace de "Ir al registro web" (dev: CloudFront de la web app; confirmar la ruta exacta del registro).
 4b. ⏳ Renovar la sesión: no hay endpoint de refresh en el MS Identidad ni en el BFF Móvil.
-4c. ⏳ Validación del token: hoy ningún servicio valida el JWT de Cognito; el BFF Móvil deberá hacerlo antes de exponer endpoints con datos del cliente.
+4c. ✅ Implementada en HU3.1.1: el BFF Móvil valida el access token de Cognito (firma, `iss`, `token_use`, `client_id` del mismo cliente que usa el MS Identidad) y obtiene el correo con `GetUser` de Cognito (el token solo trae el `sub`).
 
-## Consentimiento (HU3.1.3)
-5. ¿Es el mismo endpoint que usa la web en HU1.1.2 (`fuente_datos` / `proposito`)? ¿Qué valores corresponden a biométrico y ubicación, y de dónde sale la versión de términos?
+## Consentimiento biométrico (HU3.1.3)
+5. ✅ Implementada en HU3.1.3: `GET` y `POST /api/v1/bff-mobile/consentimientos/biometrico` (contrato de la sección 4.3 del plan de HU3.1.1; muestras en [app/src/test/resources/contracts/consentimiento-biometrico](../app/src/test/resources/contracts/consentimiento-biometrico)). El MS Identidad guarda cada decisión, también el rechazo, con fecha, hora, versión del texto legal e instalación, y la activación exige el consentimiento (`REQUIRE_BIOMETRIC_CONSENT=true`). La app usa la versión remota por defecto; la simulada queda solo para demos sin backend.
 
-## Cédula y prueba de vida (HU3.1.1)
-6. ¿La cédula viaja en `multipart`, en base64 o a S3 con URL prefirmada?
-7. ¿El SDK de liveness (Didit) corre en el dispositivo, o la app solo envía la selfie y el backend llama al proveedor?
-8. Respuesta esperada: resultado, número de intento, intentos restantes, folio. ¿El máximo de 3 intentos lo controla el backend?
+## Prueba de vida (HU3.1.1)
+6. ✅ No aplica a la app: la prueba de vida móvil no usa la cédula. Las fotos del documento son del KYC/AML web para adquirir pólizas (HU1.3.3).
+7. ✅ Resuelta (diseño del experimento HA12): el backend elige el proveedor en el microservicio `liveness_adapter` (Strategy + Factory, proveedor activo por `PUT /admin/liveness-provider`). La app no conoce el proveedor; recibe solo el tipo de captura: `FRAMES` (cámara propia, 3 frames y reto del servidor; activo por defecto) o `SDK` (Didit, solo demostración y desactivado por defecto).
+8. ✅ Resuelta: `POST /activacion/sesiones` y `POST /activacion/sesiones/{id}/verificacion` responden `resultado`, `folio`, `intento`, `intentos_restantes`, `dispositivo_vinculado`, `vinculado_en` y `motivo`. El backend controla el máximo: 3 intentos en 24 h; cuentan rechazados y en curso, los anulados por fallas técnicas no. Una sesión `FRAMES` nunca se reutiliza.
 
 ## Vinculación del dispositivo
-9. ¿La vinculación ocurre en la misma respuesta de la prueba de vida o con un `POST /dispositivos` aparte? ¿Varios dispositivos por cliente? ¿Uno nuevo desvincula el anterior?
-
-Propuesta de entidad para el esquema de Identidad (pendiente de aprobación):
-
-```
-DISPOSITIVO_VINCULADO
-  dispositivo_id PK (uuid)
-  cliente_id FK
-  installation_id UK      -- UUID generado por la app (Android no permite usar IMEI)
-  plataforma, modelo, version_so
-  folio_verificacion      -- folio de la prueba de vida
-  estado                  -- ACTIVO | REVOCADO
-  vinculado_en, revocado_en, ultimo_acceso_en
-```
+9. ✅ Resuelta: la vinculación ocurre en la misma respuesta de la verificación aprobada. Hay un vínculo activo por cliente y por instalación: activar otra cuenta en el mismo teléfono revoca el vínculo anterior, y un teléfono nuevo revoca el anterior del cliente. Tabla aprobada: `dispositivos_vinculados` (más `sesiones_activacion` e `intentos_prueba_vida`); detalle y diagrama en `solventa-backend/docs/planning/HU3.1.1-diagramas.md`.
 
 ## Transversal
-10. Formato de error común (`codigo`, `mensaje`, `correlationId`) y catálogo de códigos de negocio.
-11. Duración de tokens y estrategia de refresh. Propuesta: refresh token cifrado con Android Keystore y desbloqueado con biometría (HU3.1.2).
-12. URL base de DEV/QA y fecha estimada de disponibilidad.
+10. ✅ Implementada en HU3.1.1 para los endpoints nuevos: `{codigo, mensaje, correlation_id}` y header `X-Correlation-Id` de punta a punta. Falta extenderlo al resto de endpoints y armar el catálogo de códigos.
+11. ⏳ Duración de tokens y estrategia de refresh. Propuesta: refresh token cifrado con Android Keystore y desbloqueado con biometría (HU3.1.2).
+12. 🟡 Parcial: dev y prod en AWS `us-east-1` detrás de un Load Balancer compartido, cada uno con su pool de Cognito. Las URLs están en la hoja de ambientes del equipo y van en `~/.gradle/gradle.properties`, no en el repo. El ALB es HTTP; para el build release falta un endpoint HTTPS.
