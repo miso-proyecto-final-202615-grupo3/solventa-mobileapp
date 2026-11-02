@@ -109,6 +109,11 @@ class BiometricConsentViewModel(
         }
     }
 
+    /** Salida cuando el error no se resuelve reintentando (p. ej. la cuenta no existe en el backend). */
+    fun onBackToLogin() {
+        _uiState.update { it.copy(destination = ConsentDestination.LOGIN) }
+    }
+
     fun onDestinationHandled() {
         _uiState.update { it.copy(destination = null) }
     }

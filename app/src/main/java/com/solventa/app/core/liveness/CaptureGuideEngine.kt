@@ -50,8 +50,8 @@ data class GuideConfig(
     val turnYawDegrees: Float = 25f,
     /**
      * Signo de `headEulerY` de ML Kit para "girar a la izquierda" con la cámara frontal.
-     * ML Kit reporta positivo cuando el rostro gira hacia la derecha de la imagen; se debe confirmar
-     * en un dispositivo real junto con el signo que usa MediaPipe en el backend.
+     * ML Kit reporta positivo cuando el rostro gira hacia la derecha de la imagen. Calibrado en un
+     * dispositivo real (Motorola Edge 30 Fusion) junto con `PROPIO_RIGHT_TURN_YAW_SIGN=-1` del backend.
      */
     val turnLeftSign: Int = 1,
     val returnMillis: Long = 300,

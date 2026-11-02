@@ -101,6 +101,19 @@ class BiometricConsentViewModelTest {
     }
 
     @Test
+    fun `si el registro falla puede volver al login en vez de quedar atrapado`() {
+        repository.recordResult = { ConsentResult.ServiceUnavailable }
+        val viewModel = viewModel()
+        viewModel.onCheckedChange(true)
+        viewModel.onAccept()
+        assertEquals(ConsentError.SERVICE_UNAVAILABLE, viewModel.uiState.value.error)
+
+        viewModel.onBackToLogin()
+
+        assertEquals(ConsentDestination.LOGIN, viewModel.uiState.value.destination)
+    }
+
+    @Test
     fun `sin sesion va al login`() {
         sessionStore.clear()
 

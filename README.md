@@ -48,7 +48,27 @@ solventa.bffMobileUrl=http://10.0.2.2:8001
 - En debug se permite HTTP sin cifrar solo hacia `10.0.2.2` y `localhost` (`src/debug/res/xml/network_security_config.xml`). Release exige HTTPS.
 - En un teléfono por USB, `solventa.bffMobileUrl=http://localhost:8001` junto con `adb reverse tcp:8001 tcp:8001` lleva el tráfico al BFF del PC sin depender de la red Wi-Fi.
 - Backend local: en `solventa-backend`, crear `.env` desde `.env.example` con tus credenciales de AWS y ejecutar `docker compose up --build`. La cuenta debe existir en Cognito (registro desde la web o el `bff_web`).
-- Limitaciones actuales del BFF Móvil: solo entrega tokens y el correo. Nombre, estado KYC y vinculación del dispositivo llegarán cuando el MS Identidad exponga el cliente autenticado y exista HU3.1.1; mientras tanto la app asume el teléfono vinculado para poder ofrecer la biometría. "Cuenta no encontrada" no se distingue de "credenciales inválidas" (Cognito no lo revela).
+- "Cuenta no encontrada" no se distingue de "credenciales inválidas" (Cognito no lo revela).
+
+### URL del BFF por ambiente
+
+La URL nunca va en el código: se pasa con propiedades de Gradle. Las URLs reales de dev y producción están en la hoja
+de ambientes del equipo.
+
+| Ambiente | Build | Propiedades | Notas |
+| --- | --- | --- | --- |
+| Local, emulador | debug | `solventa.useMockBackend=false`, `solventa.bffMobileUrl=http://10.0.2.2:8001` | `docker compose` del backend |
+| Local, teléfono por USB | debug | `solventa.useMockBackend=false`, `solventa.bffMobileUrl=http://localhost:8001` | Requiere `adb reverse tcp:8001 tcp:8001`; Android Studio lo borra al reiniciar ADB, hay que repetirlo |
+| Desarrollo (AWS dev) | debug | `-Psolventa.useMockBackend=false -Psolventa.bffMobileUrl=https://<url-dev>` | Debug solo permite HTTP hacia `10.0.2.2` y `localhost`: el ALB de dev (HTTP) necesita un endpoint HTTPS |
+| **Producción** | **release** | `-Psolventa.release.bffMobileUrl=https://<url-produccion>` | **El release siempre se compila con la URL de producción.** Falla si no es `https://`; usa backend y consentimiento reales |
+| Demostración sin AWS | debug | `-Psolventa.useMockBackend=true` | Backend y consentimiento simulados |
+
+Las propiedades con `-P` tienen prioridad sobre `~/.gradle/gradle.properties`, así que una URL local no se cuela en
+un APK de dev o producción. Para confirmar qué tomó el build:
+
+```bash
+grep -E "USE_MOCK_BACKEND|USE_MOCK_CONSENT|BFF_MOBILE_URL" app/build/generated/source/buildConfig/*/com/solventa/app/BuildConfig.java
+```
 
 ## Publicar el APK en GitHub Releases
 
@@ -119,8 +139,9 @@ por ejemplo, `solventa-v0.2.0-aws.apk`.
 **4. Probar el APK** en un teléfono: con un usuario de Cognito debe entrar al inicio; con uno inexistente,
 "El correo o la contraseña no coinciden"; con el clúster apagado, "No pudimos iniciar sesión en este momento".
 
-Cuando el equipo defina la llave de firma, el mismo APK se genera como release (optimizado y sin depuración) con
-`./gradlew assembleRelease -Psolventa.release.bffMobileUrl=https://…`; el empaquetado falla si la URL no es `https://`.
+Cuando el equipo defina la llave de firma, el APK publicado se genera como release (optimizado y sin depuración)
+**siempre con la URL de producción**: `./gradlew assembleRelease -Psolventa.release.bffMobileUrl=https://<url-produccion>`;
+el empaquetado falla si la URL no es `https://`. El APK de debug contra AWS (este apartado) es solo para probar en dev.
 
 Para que la URL no cambie entre despliegues, el API Gateway debe quedar como recurso permanente en
 `solventa-infrastructure` (como Cognito) y el despliegue solo debe actualizar su integración con el DNS del ALB que crea
@@ -177,13 +198,16 @@ teléfono vinculado → oferta de huella o rostro (HU3.1.2). Diseño completo en
   (inicio, gesto, fin) solo en memoria; se sobrescriben con ceros al terminar y la pantalla usa `FLAG_SECURE`.
 - **Strategy + Factory:** `CaptureLauncherFactory` elige la estrategia (`OwnCaptureLauncher`,
   `SimulatedDiditCaptureLauncher` o `SdkDiditCaptureLauncher`) según la sesión.
-- **Consentimiento:** simulado hasta que HU3.1.3 entregue su endpoint (excepción transitoria; responsable asr88).
+- **Consentimiento (HU3.1.3):** antes de la captura la app consulta y registra la decisión en
+  `GET/POST /api/v1/bff-mobile/consentimientos/biometrico`. El backend guarda aceptación y rechazo de forma auditable
+  y responde `403 CONSENTIMIENTO_BIOMETRICO_REQUERIDO` si se intenta activar sin consentimiento vigente. Contrato en
+  [app/src/test/resources/contracts/consentimiento-biometrico](app/src/test/resources/contracts/consentimiento-biometrico) (copia del backend).
 
 Propiedades de Gradle (en `~/.gradle/gradle.properties` o con `-P`):
 
 | Propiedad | Por defecto | Uso |
 | --- | --- | --- |
-| `solventa.useMockConsent` | `true` | Consentimiento simulado; `false` usa el endpoint de HU3.1.3 |
+| `solventa.useMockConsent` | igual que `solventa.useMockBackend` | Real contra el BFF; `true` simula el consentimiento (solo demos) |
 | `solventa.mockCaptureType` | `FRAMES` | Con el backend simulado, `SDK` simula Didit |
 | `solventa.diditSdkEnabled` | `false` | SDK real de Didit (demo, costo cero); si no, lanzador simulado |
 | `solventa.demoActivationEmail` | vacío | Solo debug: correo para el modo demo del BFF sin JWT (`X-Demo-Correo`) |
@@ -191,8 +215,8 @@ Propiedades de Gradle (en `~/.gradle/gradle.properties` o con `-P`):
 El SDK de Didit (`me.didit:didit-sdk-core`) se descarga de su repositorio Maven, restringido al grupo `me.didit`
 en `settings.gradle.kts`. Aumenta el APK de debug a ~67 MB junto con CameraX y ML Kit.
 
-Pendiente de calibrar en un dispositivo real: el signo de `headEulerY` para "girar a la izquierda"
-(`GuideConfig.turnLeftSign`) frente al que usa MediaPipe en el backend.
+Calibrado en un dispositivo real (Motorola Edge 30 Fusion, Android 14): `GuideConfig.turnLeftSign = 1` en la app y,
+en el backend, MediaPipe reporta el giro a la derecha con yaw negativo (`PROPIO_RIGHT_TURN_YAW_SIGN=-1`).
 
 ## Acceso biométrico (HU3.1.2)
 

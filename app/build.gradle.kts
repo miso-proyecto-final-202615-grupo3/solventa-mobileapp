@@ -8,10 +8,10 @@ plugins {
 // Backend que usa la app. Se cambia sin tocar código, p. ej. en ~/.gradle/gradle.properties:
 //   solventa.useMockBackend=false
 //   solventa.bffMobileUrl=http://10.0.2.2:8001   (debug: BFF Móvil en docker compose, visto desde el emulador)
-//   solventa.release.bffMobileUrl=https://<api-id>.execute-api.us-east-1.amazonaws.com   (release: API Gateway)
+//   solventa.release.bffMobileUrl=https://<url-de-produccion>   (release: siempre la URL HTTPS de producción)
 // Debug usa el backend simulado salvo que se indique lo contrario; release usa el real salvo que se pida el simulado.
-// Activación móvil (HU3.1.1):
-//   solventa.useMockConsent=true        consentimiento biométrico simulado hasta que HU3.1.3 entregue su endpoint
+// Activación móvil (HU3.1.1) y consentimiento (HU3.1.3):
+//   solventa.useMockConsent=false       consentimiento biométrico real (HU3.1.3); true solo para demos sin backend
 //   solventa.mockCaptureType=FRAMES|SDK  tipo de captura del backend simulado
 //   solventa.diditSdkEnabled=false       SDK real de Didit (solo demostración); si no, lanzador simulado
 //   solventa.demoActivationEmail=        correo para el modo demo del BFF sin JWT (solo debug, nunca en release)
@@ -20,7 +20,10 @@ val useMockBackendDebug = useMockBackendProperty.orElse(true).get()
 val useMockBackendRelease = useMockBackendProperty.orElse(false).get()
 val bffMobileUrl = providers.gradleProperty("solventa.bffMobileUrl").orElse("http://10.0.2.2:8001").get()
 val releaseBffMobileUrl = providers.gradleProperty("solventa.release.bffMobileUrl").orElse("").get().trim()
-val useMockConsent = providers.gradleProperty("solventa.useMockConsent").map { it.toBoolean() }.orElse(true).get()
+// Con el backend simulado el consentimiento también se simula: no hay BFF al que consultar.
+val useMockConsentProperty = providers.gradleProperty("solventa.useMockConsent").map { it.toBoolean() }
+val useMockConsentDebug = useMockConsentProperty.orElse(useMockBackendDebug).get()
+val useMockConsentRelease = useMockConsentProperty.orElse(useMockBackendRelease).get()
 val mockCaptureType = providers.gradleProperty("solventa.mockCaptureType").orElse("FRAMES").get()
 val diditSdkEnabled = providers.gradleProperty("solventa.diditSdkEnabled").map { it.toBoolean() }.orElse(false).get()
 val demoActivationEmail = providers.gradleProperty("solventa.demoActivationEmail").orElse("").get().trim()
@@ -40,7 +43,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "WEB_SIGNUP_URL", "\"https://solventa.example/registro\"")
-        buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsent.toString())
         buildConfigField("String", "MOCK_CAPTURE_TYPE", "\"$mockCaptureType\"")
         buildConfigField("boolean", "DIDIT_SDK_ENABLED", diditSdkEnabled.toString())
     }
@@ -48,11 +50,13 @@ android {
     buildTypes {
         debug {
             buildConfigField("boolean", "USE_MOCK_BACKEND", useMockBackendDebug.toString())
+            buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsentDebug.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$bffMobileUrl\"")
             buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"$demoActivationEmail\"")
         }
         release {
             buildConfigField("boolean", "USE_MOCK_BACKEND", useMockBackendRelease.toString())
+            buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsentRelease.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$releaseBffMobileUrl\"")
             buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"\"")
             isMinifyEnabled = false

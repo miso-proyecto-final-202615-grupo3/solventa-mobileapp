@@ -60,8 +60,8 @@ class AppContainer(context: Context) {
         }
 
     /**
-     * Consentimiento biométrico simulado hasta que HU3.1.3 entregue el endpoint (excepción transitoria D5,
-     * `solventa.useMockConsent`).
+     * Consentimiento biométrico (HU3.1.3): real contra el BFF Móvil; simulado solo junto con el backend simulado
+     * o si se pide con `solventa.useMockConsent=true`.
      */
     val biometricConsentRepository: BiometricConsentRepository =
         if (BuildConfig.USE_MOCK_CONSENT) {

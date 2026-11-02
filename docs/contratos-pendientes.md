@@ -9,10 +9,10 @@ Estado de cada pregunta al 2026-10-31. El contrato canónico de HU3.1.1 está en
 3. ✅ Resuelta: Cognito (`prevent_user_existence_errors`) y el MS Identidad responden 401 en ambos casos, así que con backend real se muestra el mensaje genérico de credenciales inválidas. Por eso el login muestra siempre el enlace al registro web.
 4. ⏳ URL del registro web para el enlace de "Ir al registro web" (dev: CloudFront de la web app; confirmar la ruta exacta del registro).
 4b. ⏳ Renovar la sesión: no hay endpoint de refresh en el MS Identidad ni en el BFF Móvil.
-4c. ✅ Implementada en HU3.1.1: el BFF Móvil valida el access token de Cognito (firma, `iss`, `token_use`, `client_id` del mismo cliente que usa el MS Identidad) y toma el correo del claim `username`.
+4c. ✅ Implementada en HU3.1.1: el BFF Móvil valida el access token de Cognito (firma, `iss`, `token_use`, `client_id` del mismo cliente que usa el MS Identidad) y obtiene el correo con `GetUser` de Cognito (el token solo trae el `sub`).
 
 ## Consentimiento biométrico (HU3.1.3)
-5. ⏳ Pendiente de HU3.1.3 (responsable: asr88). Contrato definido en la sección 4.3 del plan de HU3.1.1: `GET` y `POST /api/v1/bff-mobile/consentimientos/biometrico`. Hasta que se entregue, la app simula las respuestas (`solventa.useMockConsent=true`) y el backend no exige el consentimiento (`REQUIRE_BIOMETRIC_CONSENT=false`). Es una **excepción transitoria**: al entregarse el endpoint, se conecta la versión remota y se activa la variable en QA y producción.
+5. ✅ Implementada en HU3.1.3: `GET` y `POST /api/v1/bff-mobile/consentimientos/biometrico` (contrato de la sección 4.3 del plan de HU3.1.1; muestras en [app/src/test/resources/contracts/consentimiento-biometrico](../app/src/test/resources/contracts/consentimiento-biometrico)). El MS Identidad guarda cada decisión, también el rechazo, con fecha, hora, versión del texto legal e instalación, y la activación exige el consentimiento (`REQUIRE_BIOMETRIC_CONSENT=true`). La app usa la versión remota por defecto; la simulada queda solo para demos sin backend.
 
 ## Prueba de vida (HU3.1.1)
 6. ✅ No aplica a la app: la prueba de vida móvil no usa la cédula. Las fotos del documento son del KYC/AML web para adquirir pólizas (HU1.3.3).

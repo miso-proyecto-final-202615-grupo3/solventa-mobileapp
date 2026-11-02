@@ -16,6 +16,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +41,7 @@ object BiometricConsentTestTags {
     const val ACCEPT = "consent_accept"
     const val REJECT = "consent_reject"
     const val ERROR = "consent_error"
+    const val BACK_TO_LOGIN = "consent_back_to_login"
 }
 
 @Composable
@@ -65,6 +67,7 @@ fun BiometricConsentRoute(
         onAccept = viewModel::onAccept,
         onReject = viewModel::onReject,
         onRetry = viewModel::load,
+        onBackToLogin = viewModel::onBackToLogin,
     )
 }
 
@@ -76,6 +79,7 @@ fun BiometricConsentScreen(
     onReject: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onBackToLogin: () -> Unit = {},
 ) {
     if (uiState.loading) {
         Column(
@@ -152,6 +156,17 @@ fun BiometricConsentScreen(
             onClick = if (uiState.error != null && uiState.termsVersion.isBlank()) onRetry else onReject,
             modifier = Modifier.testTag(BiometricConsentTestTags.REJECT),
         )
+        // Si el registro sigue fallando, el usuario no queda atrapado en esta pantalla.
+        if (uiState.error != null) {
+            Spacer(Modifier.height(4.dp))
+            TextButton(
+                onClick = onBackToLogin,
+                enabled = !uiState.submitting,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(BiometricConsentTestTags.BACK_TO_LOGIN),
+            ) { Text(stringResource(R.string.consent_declined_back)) }
+        }
     }
 }
 
