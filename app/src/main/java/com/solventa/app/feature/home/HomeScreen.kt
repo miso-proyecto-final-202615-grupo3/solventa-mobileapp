@@ -26,6 +26,7 @@ fun HomeScreen(
     clientName: String,
     deviceLinked: Boolean,
     showBiometricHint: Boolean,
+    onActivateDevice: () -> Unit,
     onOpenSecurity: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
@@ -62,6 +63,10 @@ fun HomeScreen(
             )
         }
         Spacer(Modifier.height(32.dp))
+        if (!deviceLinked) {
+            SolventaPrimaryButton(text = stringResource(R.string.home_activate_device), onClick = onActivateDevice)
+            Spacer(Modifier.height(12.dp))
+        }
         SolventaPrimaryButton(
             text = stringResource(R.string.home_open_security),
             onClick = onOpenSecurity,
@@ -78,6 +83,6 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview() {
     SolventaTheme {
-        HomeScreen(clientName = "Camila", deviceLinked = true, showBiometricHint = true, onOpenSecurity = {}, onLogout = {})
+        HomeScreen(clientName = "Camila", deviceLinked = true, showBiometricHint = true, onActivateDevice = {}, onOpenSecurity = {}, onLogout = {})
     }
 }

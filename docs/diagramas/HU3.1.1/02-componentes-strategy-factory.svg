@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1000" viewBox="0 0 1900 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Componentes de la estrategia multi-proveedor de prueba de vida</title>
+  <desc id="desc">La app, el BFF móvil y el MS Identidad no conocen al proveedor. El microservicio liveness_adapter aplica Strategy y Factory, y el proveedor activo se cambia por endpoint sin redesplegar.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#35506b"/></marker>
+    <marker id="realize" markerWidth="14" markerHeight="14" refX="12" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#ffffff" stroke="#35506b" stroke-width="1.5"/></marker>
+    <style>
+      text{font-family:Arial,sans-serif;fill:#16263a}
+      .title{font-size:28px;font-weight:700}
+      .subtitle{font-size:15px;fill:#4a5c70}
+      .frame{fill:#fafcfe;stroke:#9fb0c0;stroke-width:1.5;stroke-dasharray:6 5}
+      .frameLabel{font-size:16px;font-weight:700;fill:#35506b}
+      .frameNote{font-size:12px;fill:#4a5c70}
+      .label{font-size:15px;font-weight:700;text-anchor:middle}
+      .body{font-size:13px;text-anchor:middle}
+      .stereo{font-size:12px;font-style:italic;text-anchor:middle;fill:#6b5200}
+      .note{font-size:13px;fill:#4a5c70}
+      .edge{font-size:12px;fill:#35506b;paint-order:stroke;stroke:#ffffff;stroke-width:4px}
+      .new{fill:#d9f4df;stroke:#208746;stroke-width:2}
+      .base{fill:#eff3f7;stroke:#5e7184;stroke-width:2}
+      .pattern{fill:#fff4cf;stroke:#b88500;stroke-width:2.5}
+      .demo{fill:#f6f6f6;stroke:#8a96a3;stroke-width:2;stroke-dasharray:7 5}
+      .arrow{fill:none;stroke:#35506b;stroke-width:2;marker-end:url(#arrow)}
+      .dash{fill:none;stroke:#35506b;stroke-width:2;stroke-dasharray:7 6;marker-end:url(#arrow)}
+      .impl{fill:none;stroke:#35506b;stroke-width:2;stroke-dasharray:5 4;marker-end:url(#realize)}
+      .legendText{font-size:13px}
+      .key{font-size:14px}
+      .keyBold{font-size:14px;font-weight:700}
+    </style>
+  </defs>
+  <rect width="1900" height="1000" fill="#ffffff"/>
+
+  <text x="30" y="46" class="title">Estrategia multi-proveedor de prueba de vida</text>
+  <text x="30" y="72" class="subtitle">HU3.1.1 · Diseño validado en el experimento HA12: intermediario + Strategy + Factory + proveedor activo por endpoint</text>
+
+  <!-- Leyenda -->
+  <rect x="1210" y="24" width="26" height="18" rx="4" class="new"/><text x="1244" y="38" class="legendText">Nuevo en HU3.1.1</text>
+  <rect x="1380" y="24" width="26" height="18" rx="4" class="pattern"/><text x="1414" y="38" class="legendText">Patrón (Strategy / Factory)</text>
+  <rect x="1610" y="24" width="26" height="18" rx="4" class="demo"/><text x="1644" y="38" class="legendText">Didit: demo, desactivado</text>
+  <rect x="1210" y="52" width="26" height="18" rx="4" class="base"/><text x="1244" y="66" class="legendText">Existente / infraestructura</text>
+  <line x1="1430" y1="61" x2="1470" y2="61" class="impl"/><text x="1480" y="66" class="legendText">implementa</text>
+
+  <!-- ============ App Android ============ -->
+  <rect x="30" y="100" width="360" height="600" rx="12" class="frame"/>
+  <text x="46" y="124" class="frameLabel">App Android</text>
+
+  <rect x="60" y="150" width="290" height="70" rx="9" class="new"/>
+  <text x="205" y="180" class="label">ActivationViewModel</text>
+  <text x="205" y="202" class="body">sesión · captura · resultado</text>
+
+  <rect x="60" y="260" width="290" height="80" rx="9" class="pattern"/>
+  <text x="205" y="281" class="stereo">«Factory»</text>
+  <text x="205" y="302" class="label">CaptureLauncherFactory</text>
+  <text x="205" y="324" class="body">elige lanzador por captura.tipo</text>
+
+  <rect x="60" y="390" width="290" height="80" rx="9" class="new"/>
+  <text x="205" y="411" class="stereo">«Strategy» · FRAMES</text>
+  <text x="205" y="432" class="label">OwnCaptureLauncher</text>
+  <text x="205" y="454" class="body">CameraX + ML Kit · 3 fotos en memoria</text>
+
+  <rect x="60" y="510" width="290" height="80" rx="9" class="demo"/>
+  <text x="205" y="531" class="stereo">«Strategy» · SDK</text>
+  <text x="205" y="552" class="label">DiditCaptureLauncher</text>
+  <text x="205" y="574" class="body">simulado por defecto · SDK real</text>
+
+  <text x="46" y="632" class="frameNote">La app recibe solo cómo capturar</text>
+  <text x="46" y="650" class="frameNote">(captura.tipo FRAMES | SDK).</text>
+  <text x="46" y="668" class="frameNote">Nunca conoce el proveedor que decide.</text>
+
+  <!-- ============ BFF móvil ============ -->
+  <rect x="420" y="100" width="240" height="600" rx="12" class="frame"/>
+  <text x="436" y="124" class="frameLabel">bff_mobile</text>
+
+  <rect x="440" y="150" width="200" height="80" rx="9" class="new"/>
+  <text x="540" y="180" class="label">Router activación</text>
+  <text x="540" y="202" class="body">/activacion/sesiones</text>
+  <text x="540" y="220" class="body">…/{id}/verificacion</text>
+
+  <rect x="440" y="270" width="200" height="80" rx="9" class="new"/>
+  <text x="540" y="302" class="label">CognitoJwtValidator</text>
+  <text x="540" y="324" class="body">correo desde el token</text>
+
+  <!-- ============ Identity ============ -->
+  <rect x="690" y="100" width="300" height="600" rx="12" class="frame"/>
+  <text x="706" y="124" class="frameLabel">identity_service</text>
+
+  <rect x="710" y="150" width="260" height="80" rx="9" class="new"/>
+  <text x="840" y="180" class="label">Casos de uso de activación</text>
+  <text x="840" y="202" class="body">intentos · vínculo · auditoría</text>
+
+  <rect x="710" y="270" width="260" height="70" rx="9" class="new"/>
+  <text x="840" y="293" class="stereo">«puerto»</text>
+  <text x="840" y="316" class="label">LivenessVerificationPort</text>
+
+  <rect x="710" y="380" width="260" height="70" rx="9" class="new"/>
+  <text x="840" y="410" class="label">HttpLivenessAdapterClient</text>
+  <text x="840" y="432" class="body">X-Correlation-Id</text>
+
+  <text x="710" y="520" class="frameNote">No conoce Propio, Didit ni MediaPipe:</text>
+  <text x="710" y="538" class="frameNote">su dependencia termina en el puerto.</text>
+
+  <!-- ============ liveness_adapter ============ -->
+  <rect x="1020" y="100" width="650" height="600" rx="12" class="frame"/>
+  <text x="1036" y="124" class="frameLabel">liveness_adapter (microservicio nuevo · sin ingress)</text>
+
+  <rect x="1040" y="150" width="270" height="80" rx="9" class="new"/>
+  <text x="1175" y="180" class="label">API normalizada</text>
+  <text x="1175" y="202" class="body">/liveness/sessions</text>
+  <text x="1175" y="220" class="body">/liveness/verifications</text>
+
+  <rect x="1360" y="150" width="290" height="80" rx="9" class="new"/>
+  <text x="1505" y="180" class="label">/admin/liveness-provider</text>
+  <text x="1505" y="202" class="body">GET · PUT → ChangeActiveProvider</text>
+
+  <rect x="1040" y="270" width="270" height="80" rx="9" class="new"/>
+  <text x="1175" y="300" class="label">StartLivenessSession</text>
+  <text x="1175" y="322" class="label">VerifyLiveness</text>
+
+  <rect x="1360" y="270" width="290" height="80" rx="9" class="new"/>
+  <text x="1505" y="300" class="label">ActiveProviderConfiguration</text>
+  <text x="1505" y="322" class="body">proveedor activo (default: propio)</text>
+
+  <rect x="1040" y="390" width="270" height="80" rx="9" class="pattern"/>
+  <text x="1175" y="411" class="stereo">«Factory»</text>
+  <text x="1175" y="432" class="label">LivenessProviderFactory</text>
+  <text x="1175" y="454" class="body">registra y entrega estrategias</text>
+
+  <rect x="1180" y="505" width="330" height="75" rx="9" class="pattern"/>
+  <text x="1345" y="527" class="stereo">«Strategy» · interfaz</text>
+  <text x="1345" y="549" class="label">LivenessProvider</text>
+  <text x="1345" y="569" class="body">start_session() · verify()</text>
+
+  <rect x="1040" y="615" width="270" height="70" rx="9" class="new"/>
+  <text x="1175" y="643" class="label">PropioProvider</text>
+  <text x="1175" y="665" class="body">activo por defecto · MediaPipe</text>
+
+  <rect x="1360" y="615" width="290" height="70" rx="9" class="demo"/>
+  <text x="1505" y="643" class="label">DiditProvider</text>
+  <text x="1505" y="665" class="body">demo · DIDIT_ENABLED=false · costo 0</text>
+
+  <!-- ============ Externos ============ -->
+  <rect x="1700" y="150" width="180" height="80" rx="9" class="base"/>
+  <text x="1790" y="182" class="label">Operador</text>
+  <text x="1790" y="204" class="body">X-Admin-Token</text>
+
+  <rect x="1700" y="270" width="180" height="80" rx="9" class="base"/>
+  <text x="1790" y="302" class="label">Redis</text>
+  <text x="1790" y="324" class="body">proveedor · sesiones</text>
+
+  <rect x="440" y="770" width="200" height="70" rx="9" class="base"/>
+  <text x="540" y="800" class="label">AWS Cognito</text>
+  <text x="540" y="822" class="body">JWKS</text>
+
+  <rect x="710" y="770" width="260" height="70" rx="9" class="base"/>
+  <text x="840" y="800" class="label">PostgreSQL</text>
+  <text x="840" y="822" class="body">sesiones · intentos · vínculos</text>
+
+  <rect x="1360" y="770" width="290" height="70" rx="9" class="demo"/>
+  <text x="1505" y="800" class="label">mock_kyc / Didit sandbox</text>
+  <text x="1505" y="822" class="body">API /v3/session/</text>
+
+  <!-- ============ Flechas ============ -->
+  <!-- App -->
+  <path d="M205,220 L205,260" class="arrow"/>
+  <path d="M205,340 L205,390" class="arrow"/>
+  <path d="M350,300 L375,300 L375,550 L350,550" class="dash"/>
+  <!-- App → BFF -->
+  <path d="M350,185 L440,185" class="arrow"/>
+  <text x="395" y="176" class="edge" text-anchor="middle">HTTPS</text>
+  <!-- BFF -->
+  <path d="M540,230 L540,270" class="arrow"/>
+  <path d="M540,350 L540,770" class="dash"/>
+  <!-- BFF → Identity -->
+  <path d="M640,190 L710,190" class="arrow"/>
+  <!-- Identity -->
+  <path d="M840,230 L840,270" class="arrow"/>
+  <path d="M840,380 L840,340" class="impl"/>
+  <path d="M970,210 L982,210 L982,805 L970,805" class="arrow"/>
+  <!-- Identity → adapter -->
+  <path d="M970,415 L1005,415 L1005,190 L1040,190" class="arrow"/>
+  <text x="1005" y="455" class="edge" text-anchor="middle">HTTP</text>
+  <text x="1005" y="471" class="edge" text-anchor="middle">interno</text>
+  <!-- adapter -->
+  <path d="M1175,230 L1175,270" class="arrow"/>
+  <path d="M1310,310 L1360,310" class="arrow"/>
+  <path d="M1505,230 L1505,270" class="arrow"/>
+  <path d="M1175,350 L1175,390" class="arrow"/>
+  <path d="M1250,470 L1250,505" class="arrow"/>
+  <path d="M1250,615 L1250,580" class="impl"/>
+  <path d="M1440,615 L1440,580" class="impl"/>
+  <path d="M1505,685 L1505,770" class="dash"/>
+  <!-- externos -->
+  <path d="M1700,190 L1650,190" class="arrow"/>
+  <path d="M1650,310 L1700,310" class="arrow"/>
+
+  <!-- Etiquetas de flechas -->
+  <text x="1335" y="300" class="edge" text-anchor="middle">get</text>
+  <text x="1262" y="492" class="edge">get(nombre)</text>
+  <text x="552" y="740" class="edge">JWKS</text>
+  <text x="1517" y="740" class="edge">x-api-key</text>
+  <text x="1675" y="180" class="edge" text-anchor="middle">PUT</text>
+
+  <!-- ============ Lectura ============ -->
+  <rect x="30" y="870" width="1850" height="112" rx="10" fill="#f7f9fb" stroke="#d3dce5"/>
+  <text x="50" y="898" class="keyBold">Strategy:</text>
+  <text x="128" y="898" class="key">cada proveedor implementa LivenessProvider (PropioProvider activo; DiditProvider solo demo). En la app, cada tipo de captura tiene su lanzador.</text>
+  <text x="50" y="926" class="keyBold">Factory:</text>
+  <text x="120" y="926" class="key">LivenessProviderFactory registra y entrega la estrategia por nombre; CaptureLauncherFactory elige el lanzador según captura.tipo.</text>
+  <text x="50" y="954" class="keyBold">Aplazar el enlace:</text>
+  <text x="188" y="954" class="key">PUT /admin/liveness-provider cambia el proveedor activo en caliente, sin redesplegar ni modificar App, BFF ni Identity.</text>
+  <text x="50" y="975" class="key" style="font-size:12px;fill:#4a5c70">Agregar un proveedor = una clase que implementa LivenessProvider + su registro en la fábrica (criterio de HA12).</text>
+</svg>

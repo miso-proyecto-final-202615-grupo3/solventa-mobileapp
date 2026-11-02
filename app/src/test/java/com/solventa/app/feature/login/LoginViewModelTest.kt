@@ -21,7 +21,11 @@ class LoginViewModelTest {
 
     private class StubAuthRepository(var result: LoginResult) : AuthRepository {
         var calls = 0
-        override suspend fun login(email: String, password: String): LoginResult {
+        override suspend fun login(
+            email: String,
+            password: String,
+            installationId: String?,
+        ): LoginResult {
             calls++
             return result
         }
@@ -31,7 +35,7 @@ class LoginViewModelTest {
         accessToken = "a",
         refreshToken = "r",
         expiresInSeconds = 3600,
-        cliente = ClienteResumen("c-1", "Camila", EstadoKyc.PENDIENTE, dispositivoVinculado = false),
+        cliente = ClienteResumen("c-1", "Camila", EstadoKyc.VERIFICADO, dispositivoVinculado = true),
     )
 
     private val repository = StubAuthRepository(LoginResult.Success(session))
@@ -86,6 +90,18 @@ class LoginViewModelTest {
         viewModel.onSubmit()
 
         assertEquals(LoginDestination.BIOMETRIC_OFFER, viewModel.uiState.value.destination)
+    }
+
+    @Test
+    fun `telefono sin vincular va a la activacion aunque haya oferta biometrica`() {
+        val unlinked = session.copy(cliente = session.cliente.copy(dispositivoVinculado = false))
+        val viewModel = LoginViewModel(StubAuthRepository(LoginResult.Success(unlinked)), sessionStore, shouldOfferBiometric = { true })
+        viewModel.onEmailChange("andres.perez@correo.com")
+        viewModel.onPasswordChange("secreta")
+
+        viewModel.onSubmit()
+
+        assertEquals(LoginDestination.ACTIVATION, viewModel.uiState.value.destination)
     }
 
     @Test

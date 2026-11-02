@@ -23,6 +23,19 @@ class MockAuthRepository(
             estadoKyc = EstadoKyc.VERIFICADO,
             dispositivoVinculado = true,
         ),
+        // Activación (HU3.1.1): la prueba de vida simulada se rechaza siempre / falta el consentimiento.
+        "rechazo.vida@correo.com" to ClienteResumen(
+            id = "c-0003",
+            nombre = "Rocío",
+            estadoKyc = EstadoKyc.PENDIENTE,
+            dispositivoVinculado = false,
+        ),
+        "sin.consentimiento@correo.com" to ClienteResumen(
+            id = "c-0004",
+            nombre = "Sara",
+            estadoKyc = EstadoKyc.PENDIENTE,
+            dispositivoVinculado = false,
+        ),
         // Cliente que aún no activa el teléfono (HU3.1.1 pendiente): no se le ofrece biometría.
         "andres.perez@correo.com" to ClienteResumen(
             id = "c-0002",
@@ -32,7 +45,7 @@ class MockAuthRepository(
         ),
     )
 
-    override suspend fun login(email: String, password: String): LoginResult {
+    override suspend fun login(email: String, password: String, installationId: String?): LoginResult {
         delay(latencyMillis)
         val normalized = email.trim().lowercase()
         if (normalized == SIMULATE_NETWORK_ERROR_EMAIL) return LoginResult.NetworkError
@@ -46,7 +59,7 @@ class MockAuthRepository(
                 accessToken = "mock-access-${UUID.randomUUID()}",
                 refreshToken = "mock-refresh-${UUID.randomUUID()}",
                 expiresInSeconds = 3600,
-                cliente = accounts[normalized] ?: demoCliente(normalized),
+                cliente = (accounts[normalized] ?: demoCliente(normalized)).copy(correo = normalized),
             ),
         )
     }

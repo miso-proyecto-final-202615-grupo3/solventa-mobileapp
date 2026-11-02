@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit
 internal data class LoginRequestDto(
     val correo: String,
     val password: String,
+    @SerialName("installation_id") val installationId: String? = null,
 )
 
 @Serializable
@@ -40,13 +41,13 @@ class RemoteAuthRepository(
     baseUrl: String,
     private val client: OkHttpClient = defaultClient(),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val assumeDeviceLinked: Boolean = true,
+    private val assumeDeviceLinked: Boolean = false,
 ) : AuthRepository {
 
     private val loginUrl = baseUrl.trimEnd('/') + LOGIN_PATH
 
-    override suspend fun login(email: String, password: String): LoginResult = withContext(ioDispatcher) {
-        val body = json.encodeToString(LoginRequestDto.serializer(), LoginRequestDto(email, password))
+    override suspend fun login(email: String, password: String, installationId: String?): LoginResult = withContext(ioDispatcher) {
+        val body = json.encodeToString(LoginRequestDto.serializer(), LoginRequestDto(email, password, installationId))
             .toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder().url(loginUrl).post(body).build()
         try {
