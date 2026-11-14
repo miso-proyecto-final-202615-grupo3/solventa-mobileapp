@@ -26,6 +26,13 @@ import com.solventa.app.feature.home.HomeScreen
 import com.solventa.app.R
 import com.solventa.app.feature.activation.ActivationRoute
 import com.solventa.app.feature.activation.ActivationViewModel
+import android.Manifest
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.solventa.app.core.permissions.isAnyGranted
+import com.solventa.app.feature.claims.evidence.ClaimEvidenceRoute
+import com.solventa.app.feature.claims.evidence.ClaimEvidenceViewModel
 import com.solventa.app.feature.claims.report.ClaimReportRoute
 import com.solventa.app.feature.claims.report.ClaimReportViewModel
 import com.solventa.app.feature.consent.BiometricConsentRoute
@@ -44,6 +51,9 @@ object Routes {
     const val CONSENT_DECLINED = "consent-declined"
     const val ACTIVATION = "activation"
     const val CLAIM_REPORT = "claims/report"
+    const val CLAIM_EVIDENCE = "claims/{claimId}/evidence"
+
+    fun claimEvidence(claimId: String) = "claims/$claimId/evidence"
 }
 
 @Composable
@@ -104,6 +114,7 @@ fun SolventaNavHost(
             }
             composable(Routes.HOME) {
                 val session by container.sessionStore.session.collectAsStateWithLifecycle()
+                val pendingEvidence by container.evidenceUploadQueue.pendingClaims().collectAsStateWithLifecycle(emptyList())
                 val biometricEnabled = container.biometricVault.isEnabled()
                 HomeScreen(
                     clientName = session?.cliente?.nombre.orEmpty(),
@@ -111,6 +122,10 @@ fun SolventaNavHost(
                     showBiometricHint = !biometricEnabled && container.biometricSettings.offerDeclined,
                     onActivateDevice = ::goToActivationFlow,
                     onReportClaim = { navController.navigate(Routes.CLAIM_REPORT) },
+                    pendingEvidenceClaimNumber = pendingEvidence.firstOrNull()?.second,
+                    onOpenPendingEvidence = {
+                        pendingEvidence.firstOrNull()?.let { navController.navigate(Routes.claimEvidence(it.first)) }
+                    },
                     onOpenSecurity = { navController.navigate(Routes.SECURITY) },
                     onLogout = {
                         container.logout()
@@ -166,8 +181,31 @@ fun SolventaNavHost(
             composable(Routes.CLAIM_REPORT) {
                 ClaimReportRoute(
                     viewModel = viewModel(factory = ClaimReportViewModel.factory(container)),
-                    // La pantalla de evidencias llega con HU4.1.2; mientras tanto se vuelve a Inicio.
-                    onEvidence = { goToHome() },
+                    onEvidence = { claimId ->
+                        navController.navigate(Routes.claimEvidence(claimId)) {
+                            popUpTo(Routes.CLAIM_REPORT) { inclusive = true }
+                        }
+                    },
+                    onHome = ::goToHome,
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
+                )
+            }
+            composable(
+                Routes.CLAIM_EVIDENCE,
+                arguments = listOf(navArgument("claimId") { type = NavType.StringType }),
+            ) { entry ->
+                val claimId = entry.arguments?.getString("claimId").orEmpty()
+                val context = LocalContext.current
+                ClaimEvidenceRoute(
+                    viewModel = viewModel(
+                        factory = ClaimEvidenceViewModel.factory(container, claimId) {
+                            context.isAnyGranted(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        },
+                    ),
+                    uriFor = container.evidenceFileStore::uriFor,
                     onHome = ::goToHome,
                     onLogin = {
                         container.logout()
