@@ -251,6 +251,28 @@ revisar → enviar → confirmación con el folio `SIN-AAAA-XXXXXXXX`. Diseño e
 
 Reglas del simulado: una descripción con `#red` simula falla de red, `#503` servicio no disponible y `#vencida` póliza no vigente.
 
+## Evidencia y ubicación del siniestro (HU4.1.2)
+
+Tras reportar el siniestro → "Adjuntar evidencia": fotos (cámara o galería), video si el tipo de siniestro lo admite
+y la ubicación del evento. Diseño en [docs/planning/HU4.1.2-plan-tecnico.md](docs/planning/HU4.1.2-plan-tecnico.md).
+
+- **Cada evidencia es independiente:** se registra en el backend, se sube **directo al almacenamiento** con una URL
+  prefirmada y se confirma. Si una falla, se ve en su miniatura con "Reintentar" o "Quitar"; el reporte y las demás
+  evidencias no se pierden.
+- **Cola de envío** (`EvidenceUploadQueue`) en el ámbito de la aplicación: una evidencia a la vez, 3 intentos con
+  retroceso de 2, 4 y 8 s, y los pendientes se guardan en `filesDir/evidencias/pendientes.json`. Se reanuda al iniciar
+  sesión; si quedan pendientes, Inicio lo avisa. Sin WorkManager: la sesión vive solo en memoria.
+- **Privacidad:** los archivos quedan solo en `filesDir/evidencias/` (nunca en la galería) y se borran al confirmarse.
+  Las fotos se recomprimen a JPEG ≤ 2048 px sin EXIF. La galería usa el selector del sistema (sin permiso de almacenamiento).
+- **Permisos:** cámara (al tomar foto o video) y ubicación (precisa o aproximada). Con "no volver a preguntar", la app
+  ofrece abrir los ajustes. Sin ubicación, el reporte sigue siendo válido.
+- **Ubicación:** Fused Location Provider (Google Play Services), 10 s de espera y la última conocida si tiene ≤ 2 min.
+  En el emulador usa una imagen con Google APIs y fija la ubicación desde los controles extendidos.
+- **Local:** el backend de `docker compose` trae MinIO; la app sube a `http://10.0.2.2:9000` (emulador). En un teléfono
+  por USB: `adb reverse tcp:9000 tcp:9000` y `S3_PUBLIC_ENDPOINT_URL=http://localhost:9000` en el `.env` del backend.
+- Código en `core/media/`, `core/location/`, `core/permissions/`, `data/claims/evidence/` y `feature/claims/evidence/`.
+- Con `solventa.useMockClaims=true` la subida se simula; la tercera evidencia falla dos veces por red para ver el reintento.
+
 ## Comandos
 
 ```bash

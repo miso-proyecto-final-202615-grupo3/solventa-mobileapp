@@ -24,8 +24,12 @@ Estado de cada pregunta al 2026-10-31. El contrato canónico de HU3.1.1 está en
 
 ## Siniestros (HU4.1.1)
 13. ✅ Implementada en la rama `feat/HU4.1.1-registrar-siniestro`: `GET /siniestros/polizas-elegibles`, `POST /siniestros` (`Idempotency-Key` obligatorio, `201` nuevo / `200` reintento) y `GET /siniestros/{id}`. Contrato canónico en la sección 3 de `solventa-backend/docs/planning/HU4.1.1-plan-tecnico.md`; muestras en [app/src/test/resources/contracts/siniestros](../app/src/test/resources/contracts/siniestros).
-14. ⏳ DEP-1: MS Pólizas aún no expone el endpoint interno de pólizas por cliente (tarea #265, JuanTapia911). Mientras tanto MS Siniestros usa pólizas ficticias en memoria (`POLIZAS_ADAPTER=memoria`).
-15. ⏳ DEP-2: confirmar los valores reales de `poliza.estado` (hoy se aceptan solo `VIGENTE`).
+14. ✅ DEP-1 resuelta (13/11/2026): MS Pólizas expone `GET /polizas/mis-polizas` y `GET /polizas/{id}` con `X-Client-Id` (#265, HU1.3.8). MS Siniestros los consume (`POLIZAS_ADAPTER=http`) y toma el código y nombre del producto del catálogo del Motor de Cotización (`GET /productos`). Pendiente: probarlo de punta a punta con una póliza emitida.
+15. ✅ DEP-2 resuelta: MS Pólizas deja la póliza en `EMITIDA`; son elegibles `EMITIDA` y `VIGENTE` (`ESTADOS_POLIZA_ELEGIBLES`) dentro de su vigencia.
+
+## Evidencias y ubicación (HU4.1.2)
+16. ✅ Implementada en la rama `feat/HU4.1.1-registrar-siniestro` (junto con HU4.1.1): `POST /siniestros/{id}/evidencias` (carga prefirmada), subida directa a S3/MinIO, `POST …/evidencias/{evidencia_id}/confirmacion`, `PUT /siniestros/{id}/ubicacion` y el detalle con `ubicacion` y `evidencias`. Contrato canónico en la sección 3 de `solventa-backend/docs/planning/HU4.1.2-plan-tecnico.md`; muestras en [app/src/test/resources/contracts/evidencias](../app/src/test/resources/contracts/evidencias).
+17. ⏳ Permisos S3/KMS del rol de MS Siniestros en AWS (sección 7.1 del plan del backend); mientras tanto, solo funciona en local con MinIO.
 
 ## Transversal
 10. ✅ Implementada en HU3.1.1 para los endpoints nuevos: `{codigo, mensaje, correlation_id}` y header `X-Correlation-Id` de punta a punta. Falta extenderlo al resto de endpoints y armar el catálogo de códigos.
