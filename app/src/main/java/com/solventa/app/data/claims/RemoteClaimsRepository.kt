@@ -1,5 +1,9 @@
 package com.solventa.app.data.claims
 
+import com.solventa.app.core.location.LocationFix
+import com.solventa.app.core.location.LocationSource
+import com.solventa.app.data.claims.evidence.EvidenceKind
+import com.solventa.app.data.claims.evidence.RemoteEvidence
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -60,6 +64,27 @@ internal data class ClaimResponseDto(
     val tipo: String,
     @SerialName("ocurrido_en") val occurredAt: String,
     @SerialName("reportado_en") val reportedAt: String,
+    val ubicacion: LocationDto? = null,
+    val evidencias: List<EvidenceDto> = emptyList(),
+)
+
+@Serializable
+internal data class LocationDto(
+    val latitud: Double,
+    val longitud: Double,
+    @SerialName("precision_m") val accuracyMeters: Double,
+    val fuente: String,
+    @SerialName("capturada_en") val capturedAt: String,
+)
+
+@Serializable
+internal data class EvidenceDto(
+    @SerialName("evidencia_id") val evidenceId: String,
+    val tipo: String,
+    val estado: String,
+    @SerialName("tamano_bytes") val sizeBytes: Long? = null,
+    @SerialName("capturada_en") val capturedAt: String,
+    @SerialName("cargada_en") val uploadedAt: String? = null,
 )
 
 @Serializable
@@ -223,6 +248,25 @@ class RemoteClaimsRepository(
             typeCode = dto.tipo,
             occurredAt = Instant.parse(dto.occurredAt),
             reportedAt = Instant.parse(dto.reportedAt),
+            location = dto.ubicacion?.let {
+                LocationFix(
+                    latitude = it.latitud,
+                    longitude = it.longitud,
+                    accuracyMeters = it.accuracyMeters.toFloat(),
+                    capturedAt = Instant.parse(it.capturedAt),
+                    source = LocationSource.entries.firstOrNull { s -> s.api == it.fuente } ?: LocationSource.NETWORK,
+                )
+            },
+            evidences = dto.evidencias.map {
+                RemoteEvidence(
+                    id = it.evidenceId,
+                    kind = EvidenceKind.entries.firstOrNull { k -> k.api == it.tipo },
+                    state = it.estado,
+                    sizeBytes = it.sizeBytes,
+                    capturedAt = Instant.parse(it.capturedAt),
+                    uploadedAt = it.uploadedAt?.let(Instant::parse),
+                )
+            },
         )
     }
 

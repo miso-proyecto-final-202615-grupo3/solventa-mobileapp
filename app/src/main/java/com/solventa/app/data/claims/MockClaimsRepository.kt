@@ -55,6 +55,12 @@ class MockClaimsRepository(
         return ReportResult.Reported(claim, replayed = false)
     }
 
+    /** Reglas de evidencia del tipo del siniestro simulado (las usa el repositorio de evidencias simulado). */
+    fun evidenceRulesFor(claimId: String): EvidenceRules {
+        val claim = reported.values.firstOrNull { it.id == claimId } ?: return EvidenceRules(5, 1)
+        return POLICIES.flatMap { it.claimTypes }.firstOrNull { it.code == claim.typeCode }?.evidenceRules ?: EvidenceRules(5, 1)
+    }
+
     override suspend fun claim(accessToken: String, claimId: String, correlationId: String): ClaimResult {
         delay(latencyMs)
         return reported.values.firstOrNull { it.id == claimId }?.let { ClaimResult.Found(it) } ?: ClaimResult.NotFound

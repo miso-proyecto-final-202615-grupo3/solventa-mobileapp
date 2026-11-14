@@ -1,5 +1,7 @@
 package com.solventa.app.data.claims
 
+import com.solventa.app.core.location.LocationFix
+import com.solventa.app.data.claims.evidence.RemoteEvidence
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -51,6 +53,9 @@ data class ReportedClaim(
     val typeCode: String,
     val occurredAt: Instant,
     val reportedAt: Instant,
+    /** HU4.1.2: solo en el detalle (`GET /siniestros/{id}`). */
+    val location: LocationFix? = null,
+    val evidences: List<RemoteEvidence> = emptyList(),
 )
 
 sealed interface PoliciesResult {
