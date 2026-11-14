@@ -15,6 +15,7 @@ plugins {
 //   solventa.mockCaptureType=FRAMES|SDK  tipo de captura del backend simulado
 //   solventa.diditSdkEnabled=false       SDK real de Didit (solo demostración); si no, lanzador simulado
 //   solventa.demoActivationEmail=        correo para el modo demo del BFF sin JWT (solo debug, nunca en release)
+//   solventa.useMockClaims=              siniestros simulados (HU4.1.1); por defecto igual que useMockBackend
 val useMockBackendProperty = providers.gradleProperty("solventa.useMockBackend").map { it.toBoolean() }
 val useMockBackendDebug = useMockBackendProperty.orElse(true).get()
 val useMockBackendRelease = useMockBackendProperty.orElse(false).get()
@@ -24,6 +25,10 @@ val releaseBffMobileUrl = providers.gradleProperty("solventa.release.bffMobileUr
 val useMockConsentProperty = providers.gradleProperty("solventa.useMockConsent").map { it.toBoolean() }
 val useMockConsentDebug = useMockConsentProperty.orElse(useMockBackendDebug).get()
 val useMockConsentRelease = useMockConsentProperty.orElse(useMockBackendRelease).get()
+// Siniestros (HU4.1.1): simulados junto con el backend simulado, o a pedido con la propiedad.
+val useMockClaimsProperty = providers.gradleProperty("solventa.useMockClaims").map { it.toBoolean() }
+val useMockClaimsDebug = useMockClaimsProperty.orElse(useMockBackendDebug).get()
+val useMockClaimsRelease = useMockClaimsProperty.orElse(useMockBackendRelease).get()
 val mockCaptureType = providers.gradleProperty("solventa.mockCaptureType").orElse("FRAMES").get()
 val diditSdkEnabled = providers.gradleProperty("solventa.diditSdkEnabled").map { it.toBoolean() }.orElse(false).get()
 val demoActivationEmail = providers.gradleProperty("solventa.demoActivationEmail").orElse("").get().trim()
@@ -51,12 +56,14 @@ android {
         debug {
             buildConfigField("boolean", "USE_MOCK_BACKEND", useMockBackendDebug.toString())
             buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsentDebug.toString())
+            buildConfigField("boolean", "USE_MOCK_CLAIMS", useMockClaimsDebug.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$bffMobileUrl\"")
             buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"$demoActivationEmail\"")
         }
         release {
             buildConfigField("boolean", "USE_MOCK_BACKEND", useMockBackendRelease.toString())
             buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsentRelease.toString())
+            buildConfigField("boolean", "USE_MOCK_CLAIMS", useMockClaimsRelease.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$releaseBffMobileUrl\"")
             buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"\"")
             isMinifyEnabled = false

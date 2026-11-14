@@ -17,6 +17,9 @@ import com.solventa.app.core.liveness.launcher.CaptureLauncherFactory
 import com.solventa.app.core.liveness.launcher.OwnCaptureLauncher
 import com.solventa.app.core.liveness.launcher.SdkDiditCaptureLauncher
 import com.solventa.app.core.liveness.launcher.SimulatedDiditCaptureLauncher
+import com.solventa.app.data.claims.ClaimsRepository
+import com.solventa.app.data.claims.MockClaimsRepository
+import com.solventa.app.data.claims.RemoteClaimsRepository
 import com.solventa.app.data.activation.ActivationRepository
 import com.solventa.app.data.activation.MockActivationRepository
 import com.solventa.app.data.activation.RemoteActivationRepository
@@ -30,6 +33,7 @@ import com.solventa.app.data.auth.RemoteAuthRepository
 import com.solventa.app.data.auth.Session
 import com.solventa.app.data.session.InMemorySessionStore
 import com.solventa.app.data.session.SessionStore
+import java.time.Clock
 
 /** Contenedor de dependencias manual; suficiente para el tamaño actual de la app. */
 class AppContainer(context: Context) {
@@ -69,6 +73,20 @@ class AppContainer(context: Context) {
         } else {
             RemoteBiometricConsentRepository(BuildConfig.BFF_MOBILE_URL)
         }
+
+    /** Siniestros (HU4.1.1): simulados con el backend simulado o con `solventa.useMockClaims=true`. */
+    val claimsRepository: ClaimsRepository =
+        if (BuildConfig.USE_MOCK_CLAIMS) {
+            MockClaimsRepository()
+        } else {
+            RemoteClaimsRepository(
+                baseUrl = BuildConfig.BFF_MOBILE_URL,
+                demoEmail = BuildConfig.DEMO_ACTIVATION_EMAIL.takeIf { it.isNotBlank() },
+            )
+        }
+
+    /** Reloj del sistema en la zona del teléfono: la fecha del siniestro es la local del cliente. */
+    val clock: Clock = Clock.systemDefaultZone()
 
     /** Estrategias de captura por tipo; Didit real solo con `solventa.diditSdkEnabled=true`. */
     val captureLauncherFactory = CaptureLauncherFactory(
