@@ -26,6 +26,8 @@ import com.solventa.app.feature.home.HomeScreen
 import com.solventa.app.R
 import com.solventa.app.feature.activation.ActivationRoute
 import com.solventa.app.feature.activation.ActivationViewModel
+import com.solventa.app.feature.claims.report.ClaimReportRoute
+import com.solventa.app.feature.claims.report.ClaimReportViewModel
 import com.solventa.app.feature.consent.BiometricConsentRoute
 import com.solventa.app.feature.consent.BiometricConsentViewModel
 import com.solventa.app.feature.consent.ConsentDeclinedScreen
@@ -41,6 +43,7 @@ object Routes {
     const val BIOMETRIC_CONSENT = "biometric-consent"
     const val CONSENT_DECLINED = "consent-declined"
     const val ACTIVATION = "activation"
+    const val CLAIM_REPORT = "claims/report"
 }
 
 @Composable
@@ -107,6 +110,7 @@ fun SolventaNavHost(
                     deviceLinked = session?.cliente?.dispositivoVinculado == true,
                     showBiometricHint = !biometricEnabled && container.biometricSettings.offerDeclined,
                     onActivateDevice = ::goToActivationFlow,
+                    onReportClaim = { navController.navigate(Routes.CLAIM_REPORT) },
                     onOpenSecurity = { navController.navigate(Routes.SECURITY) },
                     onLogout = {
                         container.logout()
@@ -157,6 +161,18 @@ fun SolventaNavHost(
                     },
                     onAccountNotFound = { uriHandler.openUri(BuildConfig.WEB_SIGNUP_URL) },
                     onConsentRequired = ::goToActivationFlow,
+                )
+            }
+            composable(Routes.CLAIM_REPORT) {
+                ClaimReportRoute(
+                    viewModel = viewModel(factory = ClaimReportViewModel.factory(container)),
+                    // La pantalla de evidencias llega con HU4.1.2; mientras tanto se vuelve a Inicio.
+                    onEvidence = { goToHome() },
+                    onHome = ::goToHome,
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
                 )
             }
             composable(Routes.SECURITY) {

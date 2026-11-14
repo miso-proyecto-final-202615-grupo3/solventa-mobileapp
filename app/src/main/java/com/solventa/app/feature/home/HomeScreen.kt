@@ -27,6 +27,7 @@ fun HomeScreen(
     deviceLinked: Boolean,
     showBiometricHint: Boolean,
     onActivateDevice: () -> Unit,
+    onReportClaim: () -> Unit,
     onOpenSecurity: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
@@ -66,6 +67,10 @@ fun HomeScreen(
         if (!deviceLinked) {
             SolventaPrimaryButton(text = stringResource(R.string.home_activate_device), onClick = onActivateDevice)
             Spacer(Modifier.height(12.dp))
+        } else {
+            // Entrada provisional hasta la barra "Pólizas · Siniestros · Perfil" de la billetera (HU3.2.x).
+            SolventaPrimaryButton(text = stringResource(R.string.home_report_claim), onClick = onReportClaim)
+            Spacer(Modifier.height(12.dp))
         }
         SolventaPrimaryButton(
             text = stringResource(R.string.home_open_security),
@@ -83,6 +88,6 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview() {
     SolventaTheme {
-        HomeScreen(clientName = "Camila", deviceLinked = true, showBiometricHint = true, onActivateDevice = {}, onOpenSecurity = {}, onLogout = {})
+        HomeScreen(clientName = "Camila", deviceLinked = true, showBiometricHint = true, onActivateDevice = {}, onReportClaim = {}, onOpenSecurity = {}, onLogout = {})
     }
 }
