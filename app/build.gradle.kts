@@ -124,6 +124,9 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.mlkit.face.detection)
     implementation(libs.didit.sdk.core)
+    // HU4.1.2: ubicación del siniestro y orientación de las fotos.
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.exifinterface)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
