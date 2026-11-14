@@ -64,6 +64,13 @@ class MockAuthRepository(
         )
     }
 
+    override suspend fun refresh(session: Session): SessionRefreshResult {
+        delay(latencyMillis)
+        return if (session.refreshToken.isBlank()) SessionRefreshResult.ReauthenticationRequired else SessionRefreshResult.Success(
+            session.copy(accessToken = "mock-access-${UUID.randomUUID()}", expiresInSeconds = 3600),
+        )
+    }
+
     private fun demoCliente(email: String) = ClienteResumen(
         id = "c-demo",
         nombre = email.substringBefore('@').substringBefore('.').replaceFirstChar { it.uppercase() },

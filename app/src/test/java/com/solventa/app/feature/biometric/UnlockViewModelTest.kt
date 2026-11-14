@@ -8,6 +8,10 @@ import com.solventa.app.core.biometric.FakeBiometricVault
 import com.solventa.app.core.biometric.FakeClock
 import com.solventa.app.core.biometric.InMemoryBiometricSettings
 import com.solventa.app.core.biometric.testSession
+import com.solventa.app.data.auth.AuthRepository
+import com.solventa.app.data.auth.LoginResult
+import com.solventa.app.data.auth.Session
+import com.solventa.app.data.auth.SessionRefreshResult
 import com.solventa.app.data.session.InMemorySessionStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Assert.assertEquals
@@ -33,7 +37,11 @@ class UnlockViewModelTest {
     private val policy = BiometricLockoutPolicy(settings, clock)
     private val sessionStore = InMemorySessionStore()
     private val lockManager = AppLockManager(vault, sessionStore, clock)
-    private val viewModel = UnlockViewModel(vault, settings, policy, sessionStore, lockManager)
+    private val authRepository = object : AuthRepository {
+        override suspend fun login(email: String, password: String, installationId: String?) = LoginResult.InvalidCredentials
+        override suspend fun refresh(session: Session) = SessionRefreshResult.Success(session)
+    }
+    private val viewModel = UnlockViewModel(vault, settings, policy, sessionStore, lockManager, authRepository)
 
     private val cipher: Cipher = Cipher.getInstance("AES/GCM/NoPadding")
 
@@ -60,6 +68,7 @@ class UnlockViewModelTest {
         viewModel.onShown()
 
         viewModel.onPromptEvent(BiometricPromptEvent.Succeeded(cipher))
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(UnlockExit.UNLOCKED, viewModel.uiState.value.exit)
         assertEquals(session, sessionStore.session.value)
@@ -103,6 +112,7 @@ class UnlockViewModelTest {
         failAttempts(2)
 
         viewModel.onPromptEvent(BiometricPromptEvent.Succeeded(cipher))
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(0, settings.failedAttempts)
     }

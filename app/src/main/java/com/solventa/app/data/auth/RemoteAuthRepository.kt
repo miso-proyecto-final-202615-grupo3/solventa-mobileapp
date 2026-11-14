@@ -30,6 +30,9 @@ internal data class LoginResponseDto(
     val correo: String? = null,
 )
 
+@Serializable
+internal data class RefreshRequestDto(@SerialName("refresh_token") val refreshToken: String)
+
 /**
  * Autenticación contra el BFF Móvil (`POST /api/v1/bff-mobile/auth/login`).
  *
@@ -45,6 +48,7 @@ class RemoteAuthRepository(
 ) : AuthRepository {
 
     private val loginUrl = baseUrl.trimEnd('/') + LOGIN_PATH
+    private val refreshUrl = baseUrl.trimEnd('/') + REFRESH_PATH
 
     override suspend fun login(email: String, password: String, installationId: String?): LoginResult = withContext(ioDispatcher) {
         val body = json.encodeToString(LoginRequestDto.serializer(), LoginRequestDto(email, password, installationId))
@@ -72,6 +76,36 @@ class RemoteAuthRepository(
         }
     }
 
+    override suspend fun refresh(session: Session): SessionRefreshResult = withContext(ioDispatcher) {
+        if (session.refreshToken.isBlank()) return@withContext SessionRefreshResult.ReauthenticationRequired
+        val body = json.encodeToString(RefreshRequestDto.serializer(), RefreshRequestDto(session.refreshToken))
+            .toRequestBody(JSON_MEDIA_TYPE)
+        val request = Request.Builder().url(refreshUrl).post(body).build()
+        try {
+            client.newCall(request).execute().use { response ->
+                when {
+                    response.isSuccessful -> {
+                        val dto = json.decodeFromString(LoginResponseDto.serializer(), response.body?.string().orEmpty())
+                        SessionRefreshResult.Success(
+                            dto.toSession().copy(
+                                refreshToken = dto.refreshToken?.takeIf { it.isNotBlank() } ?: session.refreshToken,
+                                cliente = session.cliente.copy(correo = dto.correo ?: session.cliente.correo),
+                            ),
+                        )
+                    }
+                    response.code == 401 || response.code == 422 -> SessionRefreshResult.ReauthenticationRequired
+                    else -> SessionRefreshResult.ServiceUnavailable
+                }
+            }
+        } catch (_: SerializationException) {
+            SessionRefreshResult.ServiceUnavailable
+        } catch (_: IOException) {
+            SessionRefreshResult.NetworkError
+        } catch (_: IllegalArgumentException) {
+            SessionRefreshResult.ServiceUnavailable
+        }
+    }
+
     private fun LoginResponseDto.toSession() = Session(
         accessToken = accessToken,
         refreshToken = refreshToken.orEmpty(),
@@ -87,6 +121,7 @@ class RemoteAuthRepository(
 
     companion object {
         const val LOGIN_PATH = "/api/v1/bff-mobile/auth/login"
+        const val REFRESH_PATH = "/api/v1/bff-mobile/auth/refresh"
 
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         private val json = Json { ignoreUnknownKeys = true }

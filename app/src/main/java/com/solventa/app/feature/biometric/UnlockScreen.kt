@@ -183,6 +183,23 @@ fun UnlockScreen(
                     modifier = Modifier.testTag(UnlockTestTags.USE_PASSWORD),
                 )
             }
+
+            UnlockStatus.RefreshingSession -> {
+                Title(R.string.unlock_refreshing_title)
+                Body(R.string.unlock_refreshing_body)
+            }
+
+            UnlockStatus.RefreshUnavailable -> {
+                Title(R.string.unlock_refresh_unavailable_title)
+                Body(R.string.unlock_refresh_unavailable_body)
+                Spacer(Modifier.height(32.dp))
+                SolventaPrimaryButton(
+                    text = stringResource(R.string.unlock_retry),
+                    onClick = onRetry,
+                    modifier = Modifier.testTag(UnlockTestTags.RETRY),
+                )
+                UsePasswordTextButton(onUsePassword)
+            }
         }
     }
 }

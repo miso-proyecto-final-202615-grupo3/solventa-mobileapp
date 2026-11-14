@@ -65,6 +65,10 @@
     <string name="unlock_enter_with_password">Entrar con contraseña</string>
     <string name="unlock_changed_title">Detectamos un cambio en la biometría de tu teléfono</string>
     <string name="unlock_changed_body">Se agregó o se borró una huella o rostro. Por seguridad desactivamos el acceso biométrico. Entra con tu contraseña para volver a activarlo.</string>
+    <string name="unlock_refreshing_title">Actualizando tu sesión</string>
+    <string name="unlock_refreshing_body">Estamos validando tu acceso de forma segura.</string>
+    <string name="unlock_refresh_unavailable_title">No pudimos actualizar tu sesión</string>
+    <string name="unlock_refresh_unavailable_body">Revisa tu conexión e intenta de nuevo, o entra con tu contraseña.</string>
 
     <!-- Perfil y seguridad -->
     <string name="security_title">Perfil y seguridad</string>

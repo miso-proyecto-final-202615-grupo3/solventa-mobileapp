@@ -8,7 +8,7 @@ Estado de cada pregunta al 2026-10-31. El contrato canónico de HU3.1.1 está en
 2. ✅ Implementada en HU3.1.1: el login recibe `installation_id` opcional y devuelve el bloque opcional `cliente` (`id`, `nombre`, `estado_kyc`, `dispositivo_vinculado`), que el BFF obtiene de `GET /clientes/resumen-movil` del MS Identidad. Sin bloque `cliente`, la app asume **no vinculado** y va a la activación.
 3. ✅ Resuelta: Cognito (`prevent_user_existence_errors`) y el MS Identidad responden 401 en ambos casos, así que con backend real se muestra el mensaje genérico de credenciales inválidas. Por eso el login muestra siempre el enlace al registro web.
 4. ⏳ URL del registro web para el enlace de "Ir al registro web" (dev: CloudFront de la web app; confirmar la ruta exacta del registro).
-4b. ⏳ Renovar la sesión: no hay endpoint de refresh en el MS Identidad ni en el BFF Móvil.
+4b. ✅ Renovar la sesión: `POST /api/v1/bff-mobile/auth/refresh` (Identidad `POST /clientes/renovar-sesion`); la app lo usa al desbloquear con biometría.
 4c. ✅ Implementada en HU3.1.1: el BFF Móvil valida el access token de Cognito (firma, `iss`, `token_use`, `client_id` del mismo cliente que usa el MS Identidad) y obtiene el correo con `GetUser` de Cognito (el token solo trae el `sub`).
 
 ## Consentimiento biométrico (HU3.1.3)
