@@ -22,6 +22,11 @@ Estado de cada pregunta al 2026-10-31. El contrato canónico de HU3.1.1 está en
 ## Vinculación del dispositivo
 9. ✅ Resuelta: la vinculación ocurre en la misma respuesta de la verificación aprobada. Hay un vínculo activo por cliente y por instalación: activar otra cuenta en el mismo teléfono revoca el vínculo anterior, y un teléfono nuevo revoca el anterior del cliente. Tabla aprobada: `dispositivos_vinculados` (más `sesiones_activacion` e `intentos_prueba_vida`); detalle y diagrama en `solventa-backend/docs/planning/HU3.1.1-diagramas.md`.
 
+## Siniestros (HU4.1.1)
+13. ✅ Implementada en la rama `feat/HU4.1.1-registrar-siniestro`: `GET /siniestros/polizas-elegibles`, `POST /siniestros` (`Idempotency-Key` obligatorio, `201` nuevo / `200` reintento) y `GET /siniestros/{id}`. Contrato canónico en la sección 3 de `solventa-backend/docs/planning/HU4.1.1-plan-tecnico.md`; muestras en [app/src/test/resources/contracts/siniestros](../app/src/test/resources/contracts/siniestros).
+14. ⏳ DEP-1: MS Pólizas aún no expone el endpoint interno de pólizas por cliente (tarea #265, JuanTapia911). Mientras tanto MS Siniestros usa pólizas ficticias en memoria (`POLIZAS_ADAPTER=memoria`).
+15. ⏳ DEP-2: confirmar los valores reales de `poliza.estado` (hoy se aceptan solo `VIGENTE`).
+
 ## Transversal
 10. ✅ Implementada en HU3.1.1 para los endpoints nuevos: `{codigo, mensaje, correlation_id}` y header `X-Correlation-Id` de punta a punta. Falta extenderlo al resto de endpoints y armar el catálogo de códigos.
 11. ⏳ Duración de tokens y estrategia de refresh. Propuesta: refresh token cifrado con Android Keystore y desbloqueado con biometría (HU3.1.2).

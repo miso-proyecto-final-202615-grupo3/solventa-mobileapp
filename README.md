@@ -229,6 +229,28 @@ en el backend, MediaPipe reporta el giro a la derecha con yaw negativo (`PROPIO_
 
 Limitación conocida: al entrar con contraseña teniendo la biometría activa, la sesión cifrada no se renueva (renovarla exige otro aviso biométrico). Se resolverá cuando se defina con backend la estrategia de refresh token (ver pregunta 11 de [docs/contratos-pendientes.md](docs/contratos-pendientes.md)).
 
+## Reportar un siniestro (HU4.1.1)
+
+Desde Inicio (teléfono vinculado) → "Reportar un siniestro": póliza vigente → qué pasó (tipo, descripción y fecha) →
+revisar → enviar → confirmación con el folio `SIN-AAAA-XXXXXXXX`. Diseño en
+[docs/planning/HU4.1.1-plan-tecnico.md](docs/planning/HU4.1.1-plan-tecnico.md).
+
+- **Tipos de siniestro:** vienen del backend por póliza (tabla `tipo_siniestro`, única fuente). La app no tiene una lista
+  propia: muestra el nombre que llega en el idioma de `Accept-Language`. Los seguros de vida no se reportan por la app.
+- **Envío idempotente:** la app genera una `Idempotency-Key` por reporte y la reutiliza en cada reintento; si cambia el
+  borrador, genera otra. Una falla de red nunca duplica el siniestro. El borrador y la clave sobreviven a que Android
+  cierre el proceso (`SavedStateHandle`).
+- **Contrato:** `GET /api/v1/bff-mobile/siniestros/polizas-elegibles`, `POST /api/v1/bff-mobile/siniestros` y
+  `GET /api/v1/bff-mobile/siniestros/{id}`. Muestras en
+  [app/src/test/resources/contracts/siniestros](app/src/test/resources/contracts/siniestros) (copia del backend).
+- Código en `data/claims/` y `feature/claims/report/`.
+
+| Propiedad | Por defecto | Uso |
+| --- | --- | --- |
+| `solventa.useMockClaims` | igual que `solventa.useMockBackend` | `true` simula los siniestros (datos del prototipo) |
+
+Reglas del simulado: una descripción con `#red` simula falla de red, `#503` servicio no disponible y `#vencida` póliza no vigente.
+
 ## Comandos
 
 ```bash
