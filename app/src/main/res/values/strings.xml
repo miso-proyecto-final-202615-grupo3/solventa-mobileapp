@@ -267,4 +267,25 @@
     <string name="evidence_msg_load_failed">No pudimos cargar el siniestro. Intenta de nuevo.</string>
     <string name="home_pending_evidence">Tienes evidencias sin enviar del siniestro %1$s.</string>
     <string name="home_pending_evidence_action">Ver evidencias</string>
+    <string name="evidence_done_title">Evidencias enviadas</string>
+    <string name="evidence_done_title_empty">Reporte terminado</string>
+    <plurals name="evidence_done_photos">
+        <item quantity="one">%1$d foto enviada</item>
+        <item quantity="many">%1$d fotos enviadas</item>
+        <item quantity="other">%1$d fotos enviadas</item>
+    </plurals>
+    <plurals name="evidence_done_videos">
+        <item quantity="one">%1$d video enviado</item>
+        <item quantity="many">%1$d videos enviados</item>
+        <item quantity="other">%1$d videos enviados</item>
+    </plurals>
+    <string name="evidence_done_location">Ubicación adjunta</string>
+    <string name="evidence_done_none">No adjuntaste evidencias a este siniestro.</string>
+    <plurals name="evidence_done_not_sent">
+        <item quantity="one">%1$d evidencia no se pudo enviar. Toca \"Agregar otra evidencia\" para reintentarla o quitarla.</item>
+        <item quantity="many">%1$d evidencias no se pudieron enviar. Toca \"Agregar otra evidencia\" para reintentarlas o quitarlas.</item>
+        <item quantity="other">%1$d evidencias no se pudieron enviar. Toca \"Agregar otra evidencia\" para reintentarlas o quitarlas.</item>
+    </plurals>
+    <string name="evidence_done_next">Las revisaremos junto con tu reporte.</string>
+    <string name="evidence_done_add_more">Agregar otra evidencia</string>
 </resources>

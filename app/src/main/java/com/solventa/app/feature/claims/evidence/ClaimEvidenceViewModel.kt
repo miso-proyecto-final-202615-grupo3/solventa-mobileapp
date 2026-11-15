@@ -85,8 +85,20 @@ data class ClaimEvidenceUiState(
     val pendingCapture: CaptureRequest? = null,
     val confirmLeaveWithPending: Boolean = false,
     val destination: EvidenceDestination? = null,
+    /** El usuario tocó "Terminar" sin envíos en curso: se muestra la confirmación con el resumen. */
+    val completed: Boolean = false,
 ) {
     val pendingCount: Int get() = local.count { it.state in SENDING }
+
+    /** Evidencias ya guardadas en el servidor (las de esta sesión y las enviadas antes). */
+    fun sentCount(kind: EvidenceKind): Int =
+        uploaded.count { it.kind == kind && it.state == "CARGADA" } +
+            local.count { it.kind == kind && it.state == EvidenceUploadState.UPLOADED }
+
+    /** Fallidas o rechazadas: se pueden reintentar o quitar desde "Agregar otra evidencia". */
+    val notSentCount: Int get() = local.count { it.state == EvidenceUploadState.FAILED || it.state == EvidenceUploadState.REJECTED }
+
+    val locationAttached: Boolean get() = location is LocationUi.Attached || claim?.location != null
 }
 
 internal val DEFAULT_RULES = EvidenceRules(5, 1)
@@ -277,9 +289,14 @@ class ClaimEvidenceViewModel(
         if (_uiState.value.pendingCount > 0) {
             _uiState.update { it.copy(confirmLeaveWithPending = true) }
         } else {
-            _uiState.update { it.copy(destination = EvidenceDestination.Home) }
+            _uiState.update { it.copy(completed = true) }
         }
     }
+
+    /** Desde la confirmación: vuelve a la pantalla de evidencias del mismo siniestro. */
+    fun addMore() = _uiState.update { it.copy(completed = false) }
+
+    fun goHome() = _uiState.update { it.copy(destination = EvidenceDestination.Home) }
 
     fun confirmLeave() = _uiState.update { it.copy(confirmLeaveWithPending = false, destination = EvidenceDestination.Home) }
 

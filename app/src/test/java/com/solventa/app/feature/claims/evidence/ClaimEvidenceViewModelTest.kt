@@ -284,12 +284,32 @@ class ClaimEvidenceViewModelTest {
     }
 
     @Test
-    fun `terminar sin pendientes va al inicio`() {
+    fun `terminar sin pendientes muestra la confirmacion y desde ahi va al inicio`() {
         val vm = viewModel()
 
         vm.finish()
 
+        assertTrue(vm.uiState.value.completed)
+        assertEquals(null, vm.uiState.value.destination)
+        vm.goHome()
         assertEquals(EvidenceDestination.Home, vm.uiState.value.destination)
+    }
+
+    @Test
+    fun `la confirmacion resume lo enviado y permite agregar otra evidencia`() {
+        val vm = viewModel()
+        vm.capturePhoto()
+
+        vm.finish()
+
+        val state = vm.uiState.value
+        assertTrue(state.completed)
+        assertEquals(1, state.sentCount(EvidenceKind.PHOTO))
+        assertEquals(0, state.sentCount(EvidenceKind.VIDEO))
+        assertEquals(0, state.notSentCount)
+        vm.addMore()
+        assertEquals(false, vm.uiState.value.completed)
+        assertEquals(null, vm.uiState.value.destination)
     }
 
     @Test

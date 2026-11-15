@@ -74,6 +74,9 @@ object ClaimEvidenceTestTags {
     const val REMOVE_PREFIX = "evidence_remove_"
     const val FINISH = "evidence_finish"
     const val MESSAGE = "evidence_message"
+    const val DONE = "evidence_done"
+    const val DONE_HOME = "evidence_done_home"
+    const val DONE_ADD_MORE = "evidence_done_add_more"
 }
 
 private val LOCATION_PERMISSIONS = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -126,7 +129,12 @@ fun ClaimEvidenceRoute(
     LaunchedEffect(state.pendingCapture) {
         if (state.pendingCapture != null) requestCamera()
     }
-    BackHandler { viewModel.finish() }
+    BackHandler { if (state.completed) viewModel.goHome() else viewModel.finish() }
+
+    if (state.completed) {
+        ClaimEvidenceDoneScreen(state = state, onAddMore = viewModel::addMore, onHome = viewModel::goHome)
+        return
+    }
 
     ClaimEvidenceScreen(
         state = state,
