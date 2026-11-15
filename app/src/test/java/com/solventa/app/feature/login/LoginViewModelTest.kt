@@ -5,6 +5,7 @@ import com.solventa.app.data.auth.AuthRepository
 import com.solventa.app.data.auth.ClienteResumen
 import com.solventa.app.data.auth.EstadoKyc
 import com.solventa.app.data.auth.LoginResult
+import com.solventa.app.data.auth.SessionRefreshResult
 import com.solventa.app.data.auth.Session
 import com.solventa.app.data.session.InMemorySessionStore
 import org.junit.Assert.assertEquals
@@ -29,6 +30,8 @@ class LoginViewModelTest {
             calls++
             return result
         }
+
+        override suspend fun refresh(session: Session): SessionRefreshResult = SessionRefreshResult.Success(session)
     }
 
     private val session = Session(

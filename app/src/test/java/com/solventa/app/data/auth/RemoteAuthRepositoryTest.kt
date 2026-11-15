@@ -141,4 +141,23 @@ class RemoteAuthRepositoryTest {
 
         assertEquals(RemoteAuthRepository.LOGIN_PATH, server.takeRequest().path)
     }
+
+    @Test
+    fun `renovar sesion envia refresh token y conserva los datos del cliente`() = runTest {
+        server.enqueue(json(200, """{"access_token":"access-nuevo","expires_in":3600}"""))
+        val anterior = Session(
+            accessToken = "access-anterior", refreshToken = "refresh-123", expiresInSeconds = 1,
+            cliente = ClienteResumen("c-1", "Ana", EstadoKyc.VERIFICADO, true, "ana@example.com"),
+        )
+
+        val result = repository.refresh(anterior)
+
+        val request = server.takeRequest()
+        assertEquals(RemoteAuthRepository.REFRESH_PATH, request.path)
+        assertEquals("{\"refresh_token\":\"refresh-123\"}", request.body.readUtf8())
+        val session = (result as SessionRefreshResult.Success).session
+        assertEquals("access-nuevo", session.accessToken)
+        assertEquals("refresh-123", session.refreshToken)
+        assertEquals(anterior.cliente, session.cliente)
+    }
 }

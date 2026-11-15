@@ -32,3 +32,12 @@ sealed interface LoginResult {
     /** El servidor respondió pero no pudo autenticar (5xx, respuesta inesperada o mal formada). */
     data object ServiceUnavailable : LoginResult
 }
+
+/** Resultado de renovar la sesión con el refresh token de Cognito. */
+sealed interface SessionRefreshResult {
+    data class Success(val session: Session) : SessionRefreshResult
+    /** El refresh token venció, fue revocado o ya no corresponde a la sesión. */
+    data object ReauthenticationRequired : SessionRefreshResult
+    data object NetworkError : SessionRefreshResult
+    data object ServiceUnavailable : SessionRefreshResult
+}

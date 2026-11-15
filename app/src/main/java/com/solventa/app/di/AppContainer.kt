@@ -17,6 +17,9 @@ import com.solventa.app.core.liveness.launcher.CaptureLauncherFactory
 import com.solventa.app.core.liveness.launcher.OwnCaptureLauncher
 import com.solventa.app.core.liveness.launcher.SdkDiditCaptureLauncher
 import com.solventa.app.core.liveness.launcher.SimulatedDiditCaptureLauncher
+import com.solventa.app.data.claims.ClaimsRepository
+import com.solventa.app.data.claims.MockClaimsRepository
+import com.solventa.app.data.claims.RemoteClaimsRepository
 import com.solventa.app.data.activation.ActivationRepository
 import com.solventa.app.data.activation.MockActivationRepository
 import com.solventa.app.data.activation.RemoteActivationRepository
@@ -30,6 +33,28 @@ import com.solventa.app.data.auth.RemoteAuthRepository
 import com.solventa.app.data.auth.Session
 import com.solventa.app.data.session.InMemorySessionStore
 import com.solventa.app.data.session.SessionStore
+import com.solventa.app.core.location.AddressResolver
+import com.solventa.app.core.location.FusedLocationProvider
+import com.solventa.app.core.location.GeocoderAddressResolver
+import com.solventa.app.core.location.LocationProvider
+import com.solventa.app.core.media.EvidenceFileStore
+import com.solventa.app.core.media.PhotoCompressor
+import com.solventa.app.core.media.VideoInspector
+import com.solventa.app.data.claims.EvidenceRules
+import com.solventa.app.data.claims.evidence.EvidenceRepository
+import com.solventa.app.data.claims.evidence.EvidenceUploadQueue
+import com.solventa.app.data.claims.evidence.FakeStorageUploader
+import com.solventa.app.data.claims.evidence.MockEvidenceRepository
+import com.solventa.app.data.claims.evidence.PendingEvidenceStore
+import com.solventa.app.data.claims.evidence.PresignedPostUploader
+import com.solventa.app.data.claims.evidence.RemoteEvidenceRepository
+import com.solventa.app.data.claims.evidence.RetryPolicy
+import com.solventa.app.data.claims.evidence.StorageUploader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import java.io.File
+import java.time.Clock
 
 /** Contenedor de dependencias manual; suficiente para el tamaño actual de la app. */
 class AppContainer(context: Context) {
@@ -69,6 +94,53 @@ class AppContainer(context: Context) {
         } else {
             RemoteBiometricConsentRepository(BuildConfig.BFF_MOBILE_URL)
         }
+
+    /** Siniestros (HU4.1.1): simulados con el backend simulado o con `solventa.useMockClaims=true`. */
+    val claimsRepository: ClaimsRepository =
+        if (BuildConfig.USE_MOCK_CLAIMS) {
+            MockClaimsRepository()
+        } else {
+            RemoteClaimsRepository(
+                baseUrl = BuildConfig.BFF_MOBILE_URL,
+                demoEmail = BuildConfig.DEMO_ACTIVATION_EMAIL.takeIf { it.isNotBlank() },
+            )
+        }
+
+    /** Reloj del sistema en la zona del teléfono: la fecha del siniestro es la local del cliente. */
+    val clock: Clock = Clock.systemDefaultZone()
+
+    // --- HU4.1.2 · Evidencias y ubicación -----------------------------------------------------
+
+    val evidenceFileStore = EvidenceFileStore(context)
+    val photoCompressor = PhotoCompressor()
+    val videoInspector = VideoInspector()
+    val locationProvider: LocationProvider = FusedLocationProvider(context, clock)
+    val addressResolver: AddressResolver = GeocoderAddressResolver(context)
+
+    /** Evidencias: simuladas con los siniestros simulados; si no, contra el BFF y subida directa a S3. */
+    val evidenceRepository: EvidenceRepository =
+        if (BuildConfig.USE_MOCK_CLAIMS) {
+            MockEvidenceRepository(rulesFor = { (claimsRepository as? MockClaimsRepository)?.evidenceRulesFor(it) ?: EvidenceRules(5, 1) })
+        } else {
+            RemoteEvidenceRepository(
+                baseUrl = BuildConfig.BFF_MOBILE_URL,
+                demoEmail = BuildConfig.DEMO_ACTIVATION_EMAIL.takeIf { it.isNotBlank() },
+            )
+        }
+
+    private val storageUploader: StorageUploader =
+        if (BuildConfig.USE_MOCK_CLAIMS) FakeStorageUploader() else PresignedPostUploader()
+
+    /** Vive con la app: la subida sigue aunque el usuario cambie de pantalla (decisión A2). */
+    val evidenceUploadQueue = EvidenceUploadQueue(
+        repository = evidenceRepository,
+        uploader = storageUploader,
+        sessionStore = sessionStore,
+        store = PendingEvidenceStore(File(evidenceFileStore.directory, EvidenceFileStore.PENDING_FILE)),
+        deleteFile = evidenceFileStore::delete,
+        policy = RetryPolicy(),
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    )
 
     /** Estrategias de captura por tipo; Didit real solo con `solventa.diditSdkEnabled=true`. */
     val captureLauncherFactory = CaptureLauncherFactory(

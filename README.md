@@ -229,6 +229,50 @@ en el backend, MediaPipe reporta el giro a la derecha con yaw negativo (`PROPIO_
 
 Limitación conocida: al entrar con contraseña teniendo la biometría activa, la sesión cifrada no se renueva (renovarla exige otro aviso biométrico). Se resolverá cuando se defina con backend la estrategia de refresh token (ver pregunta 11 de [docs/contratos-pendientes.md](docs/contratos-pendientes.md)).
 
+## Reportar un siniestro (HU4.1.1)
+
+Desde Inicio (teléfono vinculado) → "Reportar un siniestro": póliza vigente → qué pasó (tipo, descripción y fecha) →
+revisar → enviar → confirmación con el folio `SIN-AAAA-XXXXXXXX`. Diseño en
+[docs/planning/HU4.1.1-plan-tecnico.md](docs/planning/HU4.1.1-plan-tecnico.md).
+
+- **Tipos de siniestro:** vienen del backend por póliza (tabla `tipo_siniestro`, única fuente). La app no tiene una lista
+  propia: muestra el nombre que llega en el idioma de `Accept-Language`. Los seguros de vida no se reportan por la app.
+- **Envío idempotente:** la app genera una `Idempotency-Key` por reporte y la reutiliza en cada reintento; si cambia el
+  borrador, genera otra. Una falla de red nunca duplica el siniestro. El borrador y la clave sobreviven a que Android
+  cierre el proceso (`SavedStateHandle`).
+- **Contrato:** `GET /api/v1/bff-mobile/siniestros/polizas-elegibles`, `POST /api/v1/bff-mobile/siniestros` y
+  `GET /api/v1/bff-mobile/siniestros/{id}`. Muestras en
+  [app/src/test/resources/contracts/siniestros](app/src/test/resources/contracts/siniestros) (copia del backend).
+- Código en `data/claims/` y `feature/claims/report/`.
+
+| Propiedad | Por defecto | Uso |
+| --- | --- | --- |
+| `solventa.useMockClaims` | igual que `solventa.useMockBackend` | `true` simula los siniestros (datos del prototipo) |
+
+Reglas del simulado: una descripción con `#red` simula falla de red, `#503` servicio no disponible y `#vencida` póliza no vigente.
+
+## Evidencia y ubicación del siniestro (HU4.1.2)
+
+Tras reportar el siniestro → "Adjuntar evidencia": fotos (cámara o galería), video si el tipo de siniestro lo admite
+y la ubicación del evento. Diseño en [docs/planning/HU4.1.2-plan-tecnico.md](docs/planning/HU4.1.2-plan-tecnico.md).
+
+- **Cada evidencia es independiente:** se registra en el backend, se sube **directo al almacenamiento** con una URL
+  prefirmada y se confirma. Si una falla, se ve en su miniatura con "Reintentar" o "Quitar"; el reporte y las demás
+  evidencias no se pierden.
+- **Cola de envío** (`EvidenceUploadQueue`) en el ámbito de la aplicación: una evidencia a la vez, 3 intentos con
+  retroceso de 2, 4 y 8 s, y los pendientes se guardan en `filesDir/evidencias/pendientes.json`. Se reanuda al iniciar
+  sesión; si quedan pendientes, Inicio lo avisa. Sin WorkManager: la sesión vive solo en memoria.
+- **Privacidad:** los archivos quedan solo en `filesDir/evidencias/` (nunca en la galería) y se borran al confirmarse.
+  Las fotos se recomprimen a JPEG ≤ 2048 px sin EXIF. La galería usa el selector del sistema (sin permiso de almacenamiento).
+- **Permisos:** cámara (al tomar foto o video) y ubicación (precisa o aproximada). Con "no volver a preguntar", la app
+  ofrece abrir los ajustes. Sin ubicación, el reporte sigue siendo válido.
+- **Ubicación:** Fused Location Provider (Google Play Services), 10 s de espera y la última conocida si tiene ≤ 2 min.
+  En el emulador usa una imagen con Google APIs y fija la ubicación desde los controles extendidos.
+- **Local:** el backend de `docker compose` trae MinIO; la app sube a `http://10.0.2.2:9000` (emulador). En un teléfono
+  por USB: `adb reverse tcp:9000 tcp:9000` y `S3_PUBLIC_ENDPOINT_URL=http://localhost:9000` en el `.env` del backend.
+- Código en `core/media/`, `core/location/`, `core/permissions/`, `data/claims/evidence/` y `feature/claims/evidence/`.
+- Con `solventa.useMockClaims=true` la subida se simula; la tercera evidencia falla dos veces por red para ver el reintento.
+
 ## Comandos
 
 ```bash
