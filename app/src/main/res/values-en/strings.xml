@@ -62,6 +62,10 @@
     <string name="unlock_enter_with_password">Sign in with password</string>
     <string name="unlock_changed_title">We detected a change in your phone\'s biometrics</string>
     <string name="unlock_changed_body">A fingerprint or face was added or removed. For security we turned off biometric sign-in. Sign in with your password to turn it back on.</string>
+    <string name="unlock_refreshing_title">Refreshing your session</string>
+    <string name="unlock_refreshing_body">We are securely checking your access.</string>
+    <string name="unlock_refresh_unavailable_title">We could not refresh your session</string>
+    <string name="unlock_refresh_unavailable_body">Check your connection and try again, or sign in with your password.</string>
 
     <!-- Profile and security -->
     <string name="security_title">Profile and security</string>
