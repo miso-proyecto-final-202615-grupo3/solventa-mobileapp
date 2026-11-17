@@ -31,6 +31,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.solventa.app.core.permissions.isAnyGranted
+import com.solventa.app.feature.claims.detail.ClaimDetailRoute
+import com.solventa.app.feature.claims.detail.ClaimDetailViewModel
+import com.solventa.app.feature.claims.list.MyClaimsRoute
+import com.solventa.app.feature.claims.list.MyClaimsViewModel
 import com.solventa.app.feature.claims.evidence.ClaimEvidenceRoute
 import com.solventa.app.feature.claims.evidence.ClaimEvidenceViewModel
 import com.solventa.app.feature.claims.report.ClaimReportRoute
@@ -52,8 +56,11 @@ object Routes {
     const val ACTIVATION = "activation"
     const val CLAIM_REPORT = "claims/report"
     const val CLAIM_EVIDENCE = "claims/{claimId}/evidence"
+    const val MY_CLAIMS = "claims"
+    const val CLAIM_DETAIL = "claims/{claimId}"
 
     fun claimEvidence(claimId: String) = "claims/$claimId/evidence"
+    fun claimDetail(claimId: String) = "claims/$claimId"
 }
 
 @Composable
@@ -122,6 +129,7 @@ fun SolventaNavHost(
                     showBiometricHint = !biometricEnabled && container.biometricSettings.offerDeclined,
                     onActivateDevice = ::goToActivationFlow,
                     onReportClaim = { navController.navigate(Routes.CLAIM_REPORT) },
+                    onOpenMyClaims = { navController.navigate(Routes.MY_CLAIMS) },
                     pendingEvidenceClaimNumber = pendingEvidence.firstOrNull()?.second,
                     onOpenPendingEvidence = {
                         pendingEvidence.firstOrNull()?.let { navController.navigate(Routes.claimEvidence(it.first)) }
@@ -207,6 +215,33 @@ fun SolventaNavHost(
                     ),
                     uriFor = container.evidenceFileStore::uriFor,
                     onHome = ::goToHome,
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
+                )
+            }
+            composable(Routes.MY_CLAIMS) {
+                MyClaimsRoute(
+                    viewModel = viewModel(factory = MyClaimsViewModel.factory(container)),
+                    onOpenClaim = { claimId -> navController.navigate(Routes.claimDetail(claimId)) },
+                    onReportClaim = { navController.navigate(Routes.CLAIM_REPORT) },
+                    onBack = { navController.popBackStack() },
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
+                )
+            }
+            composable(
+                Routes.CLAIM_DETAIL,
+                arguments = listOf(navArgument("claimId") { type = NavType.StringType }),
+            ) { entry ->
+                val claimId = entry.arguments?.getString("claimId").orEmpty()
+                ClaimDetailRoute(
+                    viewModel = viewModel(factory = ClaimDetailViewModel.factory(container, claimId)),
+                    onAddEvidence = { id -> navController.navigate(Routes.claimEvidence(id)) },
+                    onBack = { navController.popBackStack() },
                     onLogin = {
                         container.logout()
                         goToLogin()
