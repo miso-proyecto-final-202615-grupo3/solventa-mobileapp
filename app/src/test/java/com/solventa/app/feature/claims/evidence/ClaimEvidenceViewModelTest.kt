@@ -8,6 +8,7 @@ import com.solventa.app.core.location.LocationSource
 import com.solventa.app.core.permissions.PermissionStatus
 import com.solventa.app.data.claims.ClaimDraft
 import com.solventa.app.data.claims.ClaimResult
+import com.solventa.app.data.claims.ClaimsPageResult
 import com.solventa.app.data.claims.ClaimStatus
 import com.solventa.app.data.claims.ClaimsRepository
 import com.solventa.app.data.claims.MockClaimsRepository
@@ -68,6 +69,8 @@ class ClaimEvidenceViewModelTest {
             gate?.await()
             return result
         }
+        override suspend fun claims(accessToken: String, policyId: String?, page: Int, pageSize: Int, correlationId: String) =
+            ClaimsPageResult.ServiceUnavailable
     }
 
     private inner class FakeMedia : EvidenceMedia {

@@ -1,6 +1,7 @@
 package com.solventa.app.data.claims.evidence
 
 import com.solventa.app.core.location.LocationFix
+import java.time.Instant
 import java.time.OffsetDateTime
 
 sealed interface TicketResult {
@@ -55,4 +56,18 @@ interface EvidenceRepository {
 
     /** `PUT /siniestros/{id}/ubicacion`. */
     suspend fun saveLocation(accessToken: String, claimId: String, fix: LocationFix, correlationId: String): LocationSaveResult
+
+    /** HU4.2.1 · `GET /siniestros/{id}/evidencias/{evidencia_id}/descarga`: URL de lectura temporal (no se registra). */
+    suspend fun download(accessToken: String, claimId: String, evidenceId: String, correlationId: String): DownloadResult
+}
+
+sealed interface DownloadResult {
+    /** [url] vence en [expiresAt] (unos 5 minutos); se abre de inmediato y no se guarda. */
+    data class Ready(val url: String, val contentType: String, val expiresAt: Instant) : DownloadResult
+    /** La evidencia todavía no está `CARGADA` (se está enviando o fue rechazada). */
+    data object NotAvailable : DownloadResult
+    data object NotFound : DownloadResult
+    data object SessionExpired : DownloadResult
+    data object NetworkError : DownloadResult
+    data object ServiceUnavailable : DownloadResult
 }

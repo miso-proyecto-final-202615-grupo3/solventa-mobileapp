@@ -5,6 +5,7 @@ import com.solventa.app.MainDispatcherRule
 import com.solventa.app.core.biometric.testSession
 import com.solventa.app.data.claims.ClaimDraft
 import com.solventa.app.data.claims.ClaimResult
+import com.solventa.app.data.claims.ClaimsPageResult
 import com.solventa.app.data.claims.ClaimStatus
 import com.solventa.app.data.claims.ClaimsRepository
 import com.solventa.app.data.claims.MockClaimsRepository
@@ -48,6 +49,8 @@ class ClaimReportViewModelTest {
         }
 
         override suspend fun claim(accessToken: String, claimId: String, correlationId: String) = ClaimResult.NotFound
+        override suspend fun claims(accessToken: String, policyId: String?, page: Int, pageSize: Int, correlationId: String) =
+            ClaimsPageResult.ServiceUnavailable
     }
 
     private val repository = FakeRepository()
