@@ -55,6 +55,13 @@ internal data class LocationRequestDto(
 )
 
 @Serializable
+internal data class DownloadResponseDto(
+    @SerialName("content_type") val contentType: String,
+    val url: String,
+    @SerialName("expira_en") val expiresAt: String,
+)
+
+@Serializable
 internal data class EvidenceErrorDto(val codigo: String? = null)
 
 /**
@@ -159,6 +166,26 @@ class RemoteEvidenceRepository(
                             else -> LocationSaveResult.ServiceUnavailable
                         }
                     }
+            }
+        }
+
+    override suspend fun download(accessToken: String, claimId: String, evidenceId: String, correlationId: String): DownloadResult =
+        withContext(ioDispatcher) {
+            val url = "$baseUrl$CLAIMS/$claimId/evidencias/$evidenceId/descarga"
+            call({ DownloadResult.NetworkError }, { DownloadResult.ServiceUnavailable }) {
+                client.newCall(authorized(url, accessToken, correlationId).get().build()).execute().use { response ->
+                    val text = response.body?.string().orEmpty()
+                    when {
+                        response.isSuccessful -> {
+                            val dto = json.decodeFromString(DownloadResponseDto.serializer(), text)
+                            DownloadResult.Ready(dto.url, dto.contentType, Instant.parse(dto.expiresAt))
+                        }
+                        response.code == 401 -> DownloadResult.SessionExpired
+                        response.code == 404 -> DownloadResult.NotFound
+                        response.code == 409 -> DownloadResult.NotAvailable
+                        else -> DownloadResult.ServiceUnavailable
+                    }
+                }
             }
         }
 

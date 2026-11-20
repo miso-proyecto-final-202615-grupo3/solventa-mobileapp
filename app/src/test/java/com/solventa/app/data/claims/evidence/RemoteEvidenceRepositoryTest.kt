@@ -167,6 +167,41 @@ class RemoteEvidenceRepositoryTest {
         assertEquals(StorageUploadResult.NetworkError, uploader.upload(ticket.copy(url = "${CLOSED_PORT}bucket"), file, "video/mp4") {})
     }
 
+    // --- HU4.2.1 · Descarga ---
+
+    @Test
+    fun `descarga del contrato`() = runTest(dispatcher) {
+        server.enqueue(MockResponse().setBody(contract("descarga-response.json")))
+
+        val result = repository().download("tok", "c41f0e2a", "5e0c2d8a", "corr-d") as DownloadResult.Ready
+
+        val request = server.takeRequest()
+        assertEquals("/api/v1/bff-mobile/siniestros/c41f0e2a/evidencias/5e0c2d8a/descarga", request.path)
+        assertEquals("GET", request.method)
+        assertEquals("Bearer tok", request.getHeader("Authorization"))
+        assertEquals("image/jpeg", result.contentType)
+        assertTrue(result.url.startsWith("https://") && "X-Amz-Expires=300" in result.url)
+        assertEquals(Instant.parse("2026-11-10T20:10:00Z"), result.expiresAt)
+    }
+
+    @Test
+    fun `descarga traduce los errores`() = runTest(dispatcher) {
+        server.enqueue(MockResponse().setResponseCode(409).setBody(contract("error-evidencia-no-disponible.json")))
+        server.enqueue(MockResponse().setResponseCode(404).setBody(error("EVIDENCIA_NO_ENCONTRADA")))
+        server.enqueue(MockResponse().setResponseCode(401))
+        server.enqueue(MockResponse().setResponseCode(503))
+        val repo = repository()
+
+        assertEquals(DownloadResult.NotAvailable, repo.download("t", "s", "e", "c"))
+        assertEquals(DownloadResult.NotFound, repo.download("t", "s", "e", "c"))
+        assertEquals(DownloadResult.SessionExpired, repo.download("t", "s", "e", "c"))
+        assertEquals(DownloadResult.ServiceUnavailable, repo.download("t", "s", "e", "c"))
+        assertEquals(
+            DownloadResult.NetworkError,
+            RemoteEvidenceRepository(CLOSED_PORT, ioDispatcher = dispatcher).download("t", "s", "e", "c"),
+        )
+    }
+
     private companion object {
         const val CLOSED_PORT = "http://127.0.0.1:1/"
     }

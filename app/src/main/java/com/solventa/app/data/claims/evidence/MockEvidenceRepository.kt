@@ -66,9 +66,21 @@ class MockEvidenceRepository(
     private fun ticketFor(id: String) =
         UploadTicket(id, "https://simulado.local/evidencias", mapOf("key" to id), Instant.now(clock).plusSeconds(600), 50L * 1024 * 1024)
 
+    /** Sin almacenamiento real: devuelve una imagen pública de ejemplo para la evidencia ya enviada. */
+    override suspend fun download(accessToken: String, claimId: String, evidenceId: String, correlationId: String): DownloadResult {
+        delay(latencyMs)
+        if (evidenceId !in uploaded) return DownloadResult.NotAvailable
+        val kind = issued[claimId]?.firstOrNull { it.first == evidenceId }?.second ?: EvidenceKind.PHOTO
+        return DownloadResult.Ready(SAMPLE_URL, kind.mime, Instant.now(clock).plusSeconds(300))
+    }
+
     override suspend fun saveLocation(accessToken: String, claimId: String, fix: LocationFix, correlationId: String): LocationSaveResult {
         delay(latencyMs)
         locations[claimId] = fix
         return LocationSaveResult.Saved
+    }
+
+    private companion object {
+        const val SAMPLE_URL = "https://example.com/evidencia-simulada.jpg"
     }
 }

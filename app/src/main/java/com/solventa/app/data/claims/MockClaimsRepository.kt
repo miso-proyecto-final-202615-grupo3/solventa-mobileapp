@@ -66,6 +66,21 @@ class MockClaimsRepository(
         return reported.values.firstOrNull { it.id == claimId }?.let { ClaimResult.Found(it) } ?: ClaimResult.NotFound
     }
 
+    override suspend fun claims(
+        accessToken: String,
+        policyId: String?,
+        page: Int,
+        pageSize: Int,
+        correlationId: String,
+    ): ClaimsPageResult {
+        delay(latencyMs)
+        val all = reported.values
+            .filter { policyId == null || it.policyId == policyId }
+            .sortedByDescending { it.reportedAt }
+        val items = all.drop((page - 1) * pageSize).take(pageSize)
+        return ClaimsPageResult.Loaded(ClaimsPage(items, page, pageSize, all.size))
+    }
+
     companion object {
         const val NETWORK_TAG = "#red"
         const val UNAVAILABLE_TAG = "#503"

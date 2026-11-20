@@ -187,4 +187,62 @@ class RemoteClaimsRepositoryTest {
         val body = Json.parseToJsonElement(server.takeRequest().body.readUtf8()).jsonObject
         assertEquals("2026-11-10T14:30:00-05:00", body["ocurrido_en"]!!.jsonPrimitive.content)
     }
+
+    // --- HU4.2.1 · Mis siniestros ---
+
+    @Test
+    fun `lista del contrato con filtro y paginacion en la URL`() = runTest(dispatcher) {
+        server.enqueue(MockResponse().setBody(contract("listado-response.json")))
+
+        val result = repository().claims("token-1", "8d2b6c1e-4a7f-4f0e-9a51-0c6b1d9e2f10", 2, 10, "corr-9") as ClaimsPageResult.Loaded
+
+        val request = server.takeRequest()
+        val url = request.requestUrl!!
+        assertEquals("/api/v1/bff-mobile/siniestros", url.encodedPath)
+        assertEquals("2", url.queryParameter("pagina"))
+        assertEquals("10", url.queryParameter("tamano"))
+        assertEquals("8d2b6c1e-4a7f-4f0e-9a51-0c6b1d9e2f10", url.queryParameter("poliza_id"))
+        assertEquals("Bearer token-1", request.getHeader("Authorization"))
+        assertEquals("corr-9", request.getHeader("X-Correlation-Id"))
+        assertEquals(listOf("SIN-2026-D7A1F3C9", "SIN-2026-C41F0E2A"), result.page.claims.map { it.number })
+        assertEquals(ClaimStatus.REPORTED, result.page.claims.first().status)
+        assertEquals(Instant.parse("2026-11-14T15:42:37Z"), result.page.claims.first().reportedAt)
+        assertEquals(2, result.page.total)
+    }
+
+    @Test
+    fun `lista sin filtro no envia poliza_id y calcula si hay mas paginas`() = runTest(dispatcher) {
+        server.enqueue(
+            MockResponse().setBody(
+                contract("listado-response.json").replace("\"tamano\": 20", "\"tamano\": 1").replace("\"total\": 2", "\"total\": 5"),
+            ),
+        )
+
+        val result = repository().claims("t", null, 1, 1, "c") as ClaimsPageResult.Loaded
+
+        assertEquals(null, server.takeRequest().requestUrl!!.queryParameter("poliza_id"))
+        assertTrue(result.page.hasMore)
+    }
+
+    @Test
+    fun `lista omite estados desconocidos y traduce errores`() = runTest(dispatcher) {
+        server.enqueue(MockResponse().setBody(contract("listado-response.json").replaceFirst("REPORTADO", "NUEVO_ESTADO")))
+        server.enqueue(MockResponse().setResponseCode(401))
+        server.enqueue(MockResponse().setResponseCode(503))
+        server.enqueue(MockResponse().setBody("{no es json"))
+        val repo = repository()
+
+        val unknown = repo.claims("t", null, 1, 20, "c") as ClaimsPageResult.Loaded
+        assertEquals(listOf("SIN-2026-C41F0E2A"), unknown.page.claims.map { it.number })
+        assertEquals(ClaimsPageResult.SessionExpired, repo.claims("t", null, 1, 20, "c"))
+        assertEquals(ClaimsPageResult.ServiceUnavailable, repo.claims("t", null, 1, 20, "c"))
+        assertEquals(ClaimsPageResult.ServiceUnavailable, repo.claims("t", null, 1, 20, "c"))
+    }
+
+    @Test
+    fun `lista sin conexion`() = runTest(dispatcher) {
+        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START))
+
+        assertEquals(ClaimsPageResult.NetworkError, repository().claims("t", null, 1, 20, "c"))
+    }
 }

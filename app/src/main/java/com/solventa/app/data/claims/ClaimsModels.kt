@@ -89,3 +89,15 @@ sealed interface ClaimResult {
     data object NetworkError : ClaimResult
     data object ServiceUnavailable : ClaimResult
 }
+
+/** HU4.2.1: una página de "Mis siniestros", más reciente primero. */
+data class ClaimsPage(val claims: List<ReportedClaim>, val page: Int, val pageSize: Int, val total: Int) {
+    val hasMore: Boolean get() = page * pageSize < total
+}
+
+sealed interface ClaimsPageResult {
+    data class Loaded(val page: ClaimsPage) : ClaimsPageResult
+    data object SessionExpired : ClaimsPageResult
+    data object NetworkError : ClaimsPageResult
+    data object ServiceUnavailable : ClaimsPageResult
+}

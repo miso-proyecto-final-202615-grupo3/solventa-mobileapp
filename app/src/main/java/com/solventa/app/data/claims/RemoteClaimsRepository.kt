@@ -11,6 +11,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -85,6 +86,14 @@ internal data class EvidenceDto(
     @SerialName("tamano_bytes") val sizeBytes: Long? = null,
     @SerialName("capturada_en") val capturedAt: String,
     @SerialName("cargada_en") val uploadedAt: String? = null,
+)
+
+@Serializable
+internal data class ClaimsPageDto(
+    val siniestros: List<ClaimResponseDto>,
+    val pagina: Int,
+    val tamano: Int,
+    val total: Int,
 )
 
 @Serializable
@@ -177,6 +186,43 @@ class RemoteClaimsRepository(
                 ClaimResult.ServiceUnavailable
             }
         }
+
+    override suspend fun claims(
+        accessToken: String,
+        policyId: String?,
+        page: Int,
+        pageSize: Int,
+        correlationId: String,
+    ): ClaimsPageResult = withContext(ioDispatcher) {
+        val url = (baseUrl + CLAIMS_PATH).toHttpUrl().newBuilder()
+            .addQueryParameter("pagina", page.toString())
+            .addQueryParameter("tamano", pageSize.toString())
+            .apply { policyId?.let { addQueryParameter("poliza_id", it) } }
+            .build()
+        val request = authorized(url.toString(), accessToken, correlationId).get().build()
+        try {
+            client.newCall(request).execute().use { response ->
+                val text = response.body?.string().orEmpty()
+                when {
+                    response.isSuccessful -> {
+                        val dto = json.decodeFromString(ClaimsPageDto.serializer(), text)
+                        // Un estado que la app aún no conoce no rompe la lista: ese siniestro se omite.
+                        ClaimsPageResult.Loaded(ClaimsPage(dto.siniestros.mapNotNull(::toClaim), dto.pagina, dto.tamano, dto.total))
+                    }
+                    response.code == 401 -> ClaimsPageResult.SessionExpired
+                    else -> ClaimsPageResult.ServiceUnavailable
+                }
+            }
+        } catch (_: IOException) {
+            ClaimsPageResult.NetworkError
+        } catch (_: SerializationException) {
+            ClaimsPageResult.ServiceUnavailable
+        } catch (_: IllegalArgumentException) {
+            ClaimsPageResult.ServiceUnavailable
+        } catch (_: DateTimeParseException) {
+            ClaimsPageResult.ServiceUnavailable
+        }
+    }
 
     private fun authorized(url: String, accessToken: String, correlationId: String): Request.Builder =
         Request.Builder().url(url)

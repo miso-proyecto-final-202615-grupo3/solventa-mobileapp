@@ -279,4 +279,41 @@
     </plurals>
     <string name="evidence_done_next">We will review it together with your report.</string>
     <string name="evidence_done_add_more">Add more evidence</string>
+    <!-- HU4.2.1 · My claims and detail -->
+    <string name="home_my_claims">My claims</string>
+    <string name="my_claims_title">My claims</string>
+    <string name="my_claims_filter_all">All</string>
+    <plurals name="my_claims_count_plural">
+        <item quantity="one">%1$d claim</item>
+        <item quantity="other">%1$d claims</item>
+    </plurals>
+    <string name="my_claims_empty">You have not reported any claims yet.</string>
+    <string name="my_claims_empty_policy">There are no claims for this policy.</string>
+    <string name="my_claims_load_more">Show more</string>
+    <string name="my_claims_reported_on">Reported on %1$s</string>
+    <string name="my_claims_error_network">No connection. Check your internet and try again.</string>
+    <string name="my_claims_error_service">We could not load the information. Try again.</string>
+    <string name="claim_status_reported">Reported</string>
+    <string name="claim_status_in_review">Under review</string>
+    <string name="claim_status_approved">Approved</string>
+    <string name="claim_status_rejected">Rejected</string>
+    <string name="claim_status_paid">Paid</string>
+    <string name="claim_detail_title">Claim details</string>
+    <string name="claim_detail_type">Type</string>
+    <string name="claim_detail_policy">Policy</string>
+    <string name="claim_detail_occurred">Occurred</string>
+    <string name="claim_detail_reported">Reported</string>
+    <string name="claim_detail_location">Location</string>
+    <string name="claim_detail_location_value">Attached (accuracy ±%1$d m)</string>
+    <string name="claim_detail_location_none">No location</string>
+    <string name="claim_detail_evidence_title">Evidence</string>
+    <string name="claim_detail_evidence_none">This claim has no evidence.</string>
+    <string name="claim_detail_add_evidence">Add evidence</string>
+    <string name="claim_detail_back">Back</string>
+    <string name="claim_detail_dismiss">OK</string>
+    <string name="claim_detail_msg_not_found">We could not find this claim.</string>
+    <string name="claim_detail_msg_not_available">This evidence cannot be viewed yet.</string>
+    <string name="claim_detail_msg_failed">We could not open the evidence. Try again.</string>
+    <string name="claim_detail_viewer_close">Close</string>
+    <string name="claim_detail_evidence_hint">Tap a sent item to view it.</string>
 </resources>
