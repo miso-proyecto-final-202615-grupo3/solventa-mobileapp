@@ -201,6 +201,17 @@
     <string name="claim_done_policy">Póliza %1$s</string>
     <string name="claim_done_reported_at">Reportado el %1$s</string>
     <string name="claim_done_next">Ahora puedes adjuntar fotos y la ubicación para que lo evaluemos más rápido.</string>
+    <string name="claim_notifications_title">Entérate de los cambios</string>
+    <string name="claim_notifications_body">Activa las notificaciones para conocer las novedades de tu siniestro.</string>
+    <string name="claim_notifications_action">Activar notificaciones</string>
+    <!-- HU4.2.2 · Notificaciones push -->
+    <string name="notification_channel_claims">Siniestros</string>
+    <string name="notification_channel_claims_description">Cambios de estado de tus siniestros.</string>
+    <string name="notification_claim_status_title">Tu siniestro %1$s cambió de estado</string>
+    <string name="notification_claim_status_body">Ahora está: %1$s</string>
+    <string name="notifications_off_title">Notificaciones desactivadas</string>
+    <string name="notifications_off_body">Actívalas para enterarte cuando cambie el estado de tus siniestros.</string>
+    <string name="notifications_off_action">Activar notificaciones</string>
     <string name="claim_add_evidence">Adjuntar evidencia</string>
     <!-- HU4.1.2 · Evidencia y ubicación del siniestro -->
     <string name="evidence_title">Evidencia del siniestro</string>
