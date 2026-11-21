@@ -31,6 +31,13 @@ import com.solventa.app.data.auth.AuthRepository
 import com.solventa.app.data.auth.MockAuthRepository
 import com.solventa.app.data.auth.RemoteAuthRepository
 import com.solventa.app.data.auth.Session
+import com.solventa.app.data.push.PushRepository
+import com.solventa.app.data.push.RemotePushRepository
+import com.solventa.app.data.push.MockPushRepository
+import com.solventa.app.data.push.PushRegistrar
+import com.solventa.app.navigation.PendingDeepLink
+import com.solventa.app.core.push.FirebasePushTokenSource
+import com.solventa.app.core.push.NoPushTokenSource
 import com.solventa.app.data.session.InMemorySessionStore
 import com.solventa.app.data.session.SessionStore
 import com.solventa.app.core.location.AddressResolver
@@ -58,6 +65,7 @@ import java.time.Clock
 
 /** Contenedor de dependencias manual; suficiente para el tamaño actual de la app. */
 class AppContainer(context: Context) {
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val installationIdProvider: InstallationIdProvider = SharedPreferencesInstallationIdProvider(context)
     /** Backend simulado o BFF Móvil real, según la propiedad de Gradle `solventa.useMockBackend`. */
     val authRepository: AuthRepository =
@@ -68,6 +76,14 @@ class AppContainer(context: Context) {
         }
 
     val sessionStore: SessionStore = InMemorySessionStore()
+
+    /** Contrato de HU4.2.2 listo; Firebase entrega el token cuando se configure el proyecto externo. */
+    val pushRepository: PushRepository = if (BuildConfig.USE_MOCK_BACKEND) MockPushRepository() else RemotePushRepository(BuildConfig.BFF_MOBILE_URL)
+    val pushRegistrar = PushRegistrar(
+        pushRepository, sessionStore, installationIdProvider, applicationScope,
+        if (BuildConfig.HAS_FIREBASE_CONFIG) FirebasePushTokenSource() else NoPushTokenSource(),
+    )
+    val pendingDeepLink = PendingDeepLink()
 
     val deviceInfoProvider: DeviceInfoProvider = AndroidDeviceInfoProvider(installationIdProvider)
 
@@ -139,7 +155,7 @@ class AppContainer(context: Context) {
         store = PendingEvidenceStore(File(evidenceFileStore.directory, EvidenceFileStore.PENDING_FILE)),
         deleteFile = evidenceFileStore::delete,
         policy = RetryPolicy(),
-        scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+        scope = applicationScope,
     )
 
     /** Estrategias de captura por tipo; Didit real solo con `solventa.diditSdkEnabled=true`. */
@@ -171,6 +187,7 @@ class AppContainer(context: Context) {
      * se desactiva desde Perfil > Seguridad, o al borrar los datos o desinstalar la app (HU3.1.2).
      */
     fun logout() {
+        pushRegistrar.unregister(sessionStore.session.value)
         sessionStore.clear()
     }
 }

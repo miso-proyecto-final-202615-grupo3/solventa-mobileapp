@@ -5,6 +5,9 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.solventa.app.di.AppContainer
+import com.solventa.app.core.push.ClaimNotifications
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 
 class SolventaApplication : Application() {
     lateinit var container: AppContainer
@@ -13,6 +16,11 @@ class SolventaApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        ClaimNotifications.createChannel(this)
+        // Login y desbloqueo guardan la sesión: en ambos casos se registra/renueva el token FCM.
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO).launch {
+            container.sessionStore.session.filterNotNull().collect { container.pushRegistrar.register() }
+        }
         container.appLockManager.onColdStart()
         // HU4.1.2: retoma las evidencias sin enviar (se envían cuando hay sesión) y, ya cargadas, borra los
         // archivos huérfanos (capturas canceladas o restos de un cierre).
