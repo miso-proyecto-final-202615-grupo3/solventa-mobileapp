@@ -61,10 +61,16 @@ class MyClaimsViewModel(
     }
 
     /** Primera página (al entrar, al cambiar el filtro, al reintentar o al volver del detalle). */
-    fun load() {
+    fun load() = load(silent = false)
+
+    /** Al volver a la pantalla: recarga sin quitar la lista que ya se ve (HU4.2.2). */
+    fun refresh() = load(silent = true)
+
+    private fun load(silent: Boolean) {
         val token = accessToken() ?: return goToLogin()
         loadJob?.cancel()
-        _uiState.update { it.copy(loading = true, error = null) }
+        val showLoading = !silent || _uiState.value.claims.isEmpty()
+        _uiState.update { it.copy(loading = showLoading, error = null) }
         // Las pólizas solo dan el filtro y los nombres: se piden aparte y no retrasan ni bloquean la lista.
         if (_uiState.value.policies.isEmpty()) loadPolicies(token)
         loadJob = viewModelScope.launch {

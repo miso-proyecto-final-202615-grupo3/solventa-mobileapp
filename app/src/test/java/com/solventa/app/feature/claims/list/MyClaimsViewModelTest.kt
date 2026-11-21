@@ -67,6 +67,21 @@ class MyClaimsViewModelTest {
     }
 
     @Test
+    fun `al volver a la pantalla se recarga con el filtro y muestra el estado nuevo`() {
+        val repo = FakeClaims(listOf(claim(1), claim(2, dispositivos.id, "ROBO")))
+        val viewModel = MyClaimsViewModel(repo, sessionStore)
+        viewModel.selectPolicy(viaje.id)
+
+        repo.all = listOf(claim(1).copy(status = ClaimStatus.IN_REVIEW), claim(2, dispositivos.id, "ROBO"))
+        viewModel.refresh()
+
+        val state = viewModel.uiState.value
+        assertFalse(state.loading)
+        assertEquals(ClaimStatus.IN_REVIEW, state.claims.single().status)
+        assertEquals(Triple(viaje.id, 1, 20), repo.queries.last())
+    }
+
+    @Test
     fun `filtrar por poliza vuelve a la primera pagina con poliza_id`() {
         val repo = FakeClaims(listOf(claim(1), claim(2, dispositivos.id, "ROBO")))
         val vm = MyClaimsViewModel(repo, sessionStore)
