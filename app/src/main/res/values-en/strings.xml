@@ -197,6 +197,17 @@
     <string name="claim_done_policy">Policy %1$s</string>
     <string name="claim_done_reported_at">Reported on %1$s</string>
     <string name="claim_done_next">You can now attach photos and the location so we can review it faster.</string>
+    <string name="claim_notifications_title">Stay up to date</string>
+    <string name="claim_notifications_body">Enable notifications to learn about updates to your claim.</string>
+    <string name="claim_notifications_action">Enable notifications</string>
+    <!-- HU4.2.2 · Push notifications -->
+    <string name="notification_channel_claims">Claims</string>
+    <string name="notification_channel_claims_description">Status changes of your claims.</string>
+    <string name="notification_claim_status_title">Your claim %1$s changed status</string>
+    <string name="notification_claim_status_body">It is now: %1$s</string>
+    <string name="notifications_off_title">Notifications are off</string>
+    <string name="notifications_off_body">Turn them on to know when the status of your claims changes.</string>
+    <string name="notifications_off_action">Turn on notifications</string>
     <string name="claim_add_evidence">Attach evidence</string>
     <!-- HU4.1.2 · Claim evidence and location -->
     <string name="evidence_title">Claim evidence</string>

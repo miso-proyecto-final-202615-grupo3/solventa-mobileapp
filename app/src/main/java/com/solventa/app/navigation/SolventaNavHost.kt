@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -70,6 +71,8 @@ fun SolventaNavHost(
     navController: NavHostController = rememberNavController(),
 ) {
     val locked by container.appLockManager.locked.collectAsStateWithLifecycle()
+    val pendingClaimId by container.pendingDeepLink.claimId.collectAsStateWithLifecycle()
+    val session by container.sessionStore.session.collectAsStateWithLifecycle()
     // Con biometría activa la app arranca bloqueada sobre Inicio; la sesión se recupera al desbloquear.
     val startDestination = remember { if (locked) Routes.HOME else Routes.LOGIN }
 
@@ -79,6 +82,14 @@ fun SolventaNavHost(
 
     fun goToHome() = navController.navigate(Routes.HOME) {
         popUpTo(navController.graph.id) { inclusive = true }
+    }
+
+    LaunchedEffect(pendingClaimId, locked, session) {
+        if (!locked && session != null) {
+            container.pendingDeepLink.consume()?.let { claimId ->
+                navController.navigate(Routes.claimDetail(claimId))
+            }
+        }
     }
 
     // Consentimiento biométrico → activación: el teléfono sin vincular no puede saltarse este flujo.

@@ -75,4 +75,22 @@ class MyClaimsScreenTest {
         setScreen(MyClaimsUiState(loading = false, error = MyClaimsError.NETWORK))
         composeRule.onNodeWithText(context.getString(R.string.my_claims_error_network)).assertIsDisplayed()
     }
+
+    @Test
+    fun avisoDeNotificacionesDesactivadas() {
+        var enabled = false
+        composeRule.setContent {
+            SolventaTheme {
+                MyClaimsScreen(
+                    state = MyClaimsUiState(loading = false), onSelectPolicy = {}, onOpenClaim = {}, onLoadMore = {},
+                    onRetry = {}, onReportClaim = {}, onBack = {},
+                    notificationsOff = true, onEnableNotifications = { enabled = true },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(MyClaimsTestTags.NOTIFICATIONS_OFF).assertIsDisplayed()
+        composeRule.onNodeWithTag(MyClaimsTestTags.ENABLE_NOTIFICATIONS).performClick()
+        assertEquals(true, enabled)
+    }
 }
