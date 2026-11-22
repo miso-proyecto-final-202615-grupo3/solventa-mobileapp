@@ -82,6 +82,23 @@ class MyClaimsViewModelTest {
     }
 
     @Test
+    fun `al desbloquear con la sesion renovada se recarga la lista`() {
+        val repo = FakeClaims(listOf(claim(1)))
+        val store = InMemorySessionStore().apply { save(testSession()) }
+        val viewModel = MyClaimsViewModel(repo, store)
+
+        // Bloqueada: sin token, la recarga al volver no manda al login.
+        store.clear()
+        viewModel.refresh()
+        assertFalse(viewModel.uiState.value.goToLogin)
+
+        repo.all = listOf(claim(2), claim(1))
+        store.save(testSession().copy(accessToken = "a-renovado"))
+
+        assertEquals(listOf("c2", "c1"), viewModel.uiState.value.claims.map { it.id })
+    }
+
+    @Test
     fun `filtrar por poliza vuelve a la primera pagina con poliza_id`() {
         val repo = FakeClaims(listOf(claim(1), claim(2, dispositivos.id, "ROBO")))
         val vm = MyClaimsViewModel(repo, sessionStore)

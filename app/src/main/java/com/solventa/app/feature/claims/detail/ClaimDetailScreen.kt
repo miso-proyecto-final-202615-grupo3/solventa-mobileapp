@@ -60,6 +60,10 @@ import com.solventa.app.feature.claims.list.StatusBadge
 import com.solventa.app.feature.claims.list.formatDateTime
 import com.solventa.app.feature.claims.list.PENDING_NAME
 import com.solventa.app.feature.claims.list.humanize
+import com.solventa.app.feature.claims.list.compensationStatusRes
+import com.solventa.app.feature.claims.list.formatMoney
+import com.solventa.app.feature.claims.list.parametricTypeRes
+import androidx.compose.material3.Card
 import java.time.Instant
 
 object ClaimDetailTestTags {
@@ -70,6 +74,7 @@ object ClaimDetailTestTags {
     const val MESSAGE = "claim_detail_message"
     const val VIEWER = "claim_detail_viewer"
     const val VIEWER_CLOSE = "claim_detail_viewer_close"
+    const val COMPENSATION = "claim_detail_compensation"
 }
 
 @Composable
@@ -156,19 +161,51 @@ fun ClaimDetailScreen(
             StatusBadge(claim.status, Modifier.testTag(ClaimDetailTestTags.STATUS))
         }
         Spacer(Modifier.height(12.dp))
-        Field(R.string.claim_detail_type, state.typeName ?: if (state.policyLoading) PENDING_NAME else humanize(claim.typeCode))
+        val parametricType = parametricTypeRes(claim.typeCode)?.let { stringResource(it) }
+        Field(
+            R.string.claim_detail_type,
+            (if (claim.isParametric) parametricType else null)
+                ?: state.typeName ?: if (state.policyLoading && !claim.isParametric) PENDING_NAME else humanize(claim.typeCode),
+        )
         Field(
             R.string.claim_detail_policy,
-            listOfNotNull(state.policy?.productName, claim.policyNumber.takeIf { it.isNotBlank() }).joinToString(" · "),
+            listOfNotNull(
+                state.policy?.productName ?: if (claim.isParametric) stringResource(R.string.claim_parametric_product) else null,
+                claim.policyNumber.takeIf { it.isNotBlank() },
+            ).joinToString(" · "),
         )
         Field(R.string.claim_detail_occurred, formatDateTime(claim.occurredAt))
         Field(R.string.claim_detail_reported, formatDateTime(claim.reportedAt))
-        Field(
-            R.string.claim_detail_location,
-            claim.location?.let { stringResource(R.string.claim_detail_location_value, it.accuracyMeters.toInt()) }
-                ?: stringResource(R.string.claim_detail_location_none),
-        )
+        if (claim.isParametric) {
+            // HU4.2.3: no lo reportó el cliente; se creó por un evento externo cubierto por la póliza.
+            Field(R.string.claim_detail_origin, stringResource(R.string.claim_detail_origin_parametric))
+        } else {
+            Field(
+                R.string.claim_detail_location,
+                claim.location?.let { stringResource(R.string.claim_detail_location_value, it.accuracyMeters.toInt()) }
+                    ?: stringResource(R.string.claim_detail_location_none),
+            )
+        }
+        claim.compensation?.let { compensation ->
+            Spacer(Modifier.height(12.dp))
+            Card(Modifier.fillMaxWidth().testTag(ClaimDetailTestTags.COMPENSATION)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.claim_detail_compensation), style = MaterialTheme.typography.labelLarge)
+                    Text(formatMoney(compensation.amount, compensation.currency), style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        stringResource(compensationStatusRes(compensation.status)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
 
+        if (claim.isParametric) {
+            Spacer(Modifier.height(28.dp))
+            SolventaSecondaryButton(text = stringResource(R.string.claim_detail_back), onClick = onBack)
+            return@Column
+        }
         Spacer(Modifier.height(20.dp))
         Text(stringResource(R.string.claim_detail_evidence_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))

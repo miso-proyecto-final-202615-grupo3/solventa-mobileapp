@@ -68,6 +68,7 @@ object MyClaimsTestTags {
     const val LOAD_MORE = "my_claims_load_more"
     const val NOTIFICATIONS_OFF = "my_claims_notifications_off"
     const val ENABLE_NOTIFICATIONS = "my_claims_enable_notifications"
+    const val AUTOMATIC_PREFIX = "my_claims_automatic_"
 }
 
 @Composable
@@ -214,7 +215,11 @@ fun MyClaimsScreen(
                     )
                 }
                 items(state.claims, key = { it.id }) { claim ->
-                    ClaimItem(claim, state.typeName(claim) ?: if (state.policiesLoading) PENDING_NAME else null, state.policyOf(claim)?.productName) { onOpenClaim(claim.id) }
+                    ClaimItem(
+                        claim,
+                        state.typeName(claim) ?: if (state.policiesLoading && !claim.isParametric) PENDING_NAME else null,
+                        state.policyOf(claim)?.productName,
+                    ) { onOpenClaim(claim.id) }
                 }
                 if (state.hasMore || state.loadingMore || state.error != null) {
                     item {
@@ -255,9 +260,19 @@ private fun ClaimItem(claim: ReportedClaim, typeName: String?, productName: Stri
                 StatusBadge(claim.status)
             }
             Spacer(Modifier.height(4.dp))
-            Text(typeName ?: humanize(claim.typeCode), style = MaterialTheme.typography.bodyLarge)
+            val parametricType = parametricTypeRes(claim.typeCode)?.let { stringResource(it) }
             Text(
-                listOfNotNull(productName, claim.policyNumber.takeIf { it.isNotBlank() }).joinToString(" · "),
+                (if (claim.isParametric) parametricType else null) ?: typeName ?: humanize(claim.typeCode),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            if (claim.isParametric) {
+                AutomaticBadge(Modifier.padding(vertical = 4.dp).testTag(MyClaimsTestTags.AUTOMATIC_PREFIX + claim.id))
+            }
+            Text(
+                listOfNotNull(
+                    productName ?: if (claim.isParametric) stringResource(R.string.claim_parametric_product) else null,
+                    claim.policyNumber.takeIf { it.isNotBlank() },
+                ).joinToString(" · "),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
