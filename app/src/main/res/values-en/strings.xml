@@ -279,4 +279,36 @@
     </plurals>
     <string name="evidence_done_next">We will review it together with your report.</string>
     <string name="evidence_done_add_more">Add more evidence</string>
+
+    <!-- HU3.2.1 and HU3.2.2 · Policy wallet -->
+    <string name="home_open_policies">My policies</string>
+    <string name="policies_title">My policies</string>
+    <string name="policies_number">Policy %1$s</string>
+    <string name="policies_valid_range">Valid: %1$s – %2$s</string>
+    <string name="policies_refresh">Refresh</string>
+    <string name="policies_back">Back</string>
+    <string name="policies_syncing">Syncing…</string>
+    <string name="policies_offline_banner">You\'re offline. You\'re viewing the information saved on this phone.</string>
+    <string name="policies_sync_failed">We couldn\'t update your policies. We\'ll try again. Meanwhile you see the last saved version.</string>
+    <string name="policies_last_sync">Last sync: %1$s</string>
+    <string name="policies_never_synced">Not synced yet.</string>
+    <string name="policies_empty">You don\'t have issued policies yet.</string>
+    <string name="policies_empty_offline">No policies are saved on this phone yet. Connect to the internet to download them.</string>
+    <string name="policies_empty_unsynced">No policies saved yet. Tap Refresh to download them.</string>
+    <string name="policies_loading">Loading your policies…</string>
+    <string name="policy_status_active">Active</string>
+    <string name="policy_status_canceled">Canceled</string>
+    <string name="policy_status_expired">Expired</string>
+    <string name="policy_not_found">This policy is no longer in your wallet.</string>
+    <string name="policy_credential">Digital credential</string>
+    <string name="policy_premium">Total premium: %1$s</string>
+    <string name="policy_coverages">Coverages</string>
+    <string name="policy_coverage_unnamed">Coverage</string>
+    <string name="policy_coverage_limit">Insured limit: %1$s</string>
+    <string name="policy_coverage_deductible">Deductible: %1$s</string>
+    <string name="policy_open_certificate">Open certificate (PDF)</string>
+    <string name="policy_certificate_saved">The certificate is saved encrypted on this phone.</string>
+    <string name="policy_certificate_pending">The certificate isn\'t available yet. It will download when it\'s ready and you\'re online.</string>
+    <string name="policy_certificate_unavailable_offline">The certificate isn\'t saved on this phone. Connect to the internet to download it.</string>
+    <string name="policy_certificate_open_failed">Couldn\'t open the certificate. Install a PDF viewer and try again.</string>
 </resources>

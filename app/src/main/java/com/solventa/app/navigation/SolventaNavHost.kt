@@ -40,6 +40,10 @@ import com.solventa.app.feature.consent.BiometricConsentViewModel
 import com.solventa.app.feature.consent.ConsentDeclinedScreen
 import com.solventa.app.feature.login.LoginRoute
 import com.solventa.app.feature.login.LoginViewModel
+import com.solventa.app.feature.policies.PolicyDetailRoute
+import com.solventa.app.feature.policies.PolicyDetailViewModel
+import com.solventa.app.feature.policies.PolicyWalletRoute
+import com.solventa.app.feature.policies.PolicyWalletViewModel
 
 object Routes {
     const val LOGIN = "login"
@@ -52,8 +56,12 @@ object Routes {
     const val ACTIVATION = "activation"
     const val CLAIM_REPORT = "claims/report"
     const val CLAIM_EVIDENCE = "claims/{claimId}/evidence"
+    const val POLICIES = "policies"
+    const val POLICY_DETAIL = "policies/{policyId}"
 
     fun claimEvidence(claimId: String) = "claims/$claimId/evidence"
+
+    fun policyDetail(policyId: String) = "policies/$policyId"
 }
 
 @Composable
@@ -127,6 +135,7 @@ fun SolventaNavHost(
                         pendingEvidence.firstOrNull()?.let { navController.navigate(Routes.claimEvidence(it.first)) }
                     },
                     onOpenSecurity = { navController.navigate(Routes.SECURITY) },
+                    onOpenPolicies = { navController.navigate(Routes.POLICIES) },
                     onLogout = {
                         container.logout()
                         goToLogin()
@@ -211,6 +220,23 @@ fun SolventaNavHost(
                         container.logout()
                         goToLogin()
                     },
+                )
+            }
+            composable(Routes.POLICIES) {
+                PolicyWalletRoute(
+                    viewModel = viewModel(factory = PolicyWalletViewModel.factory(container)),
+                    onOpenPolicy = { navController.navigate(Routes.policyDetail(it)) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                Routes.POLICY_DETAIL,
+                arguments = listOf(navArgument("policyId") { type = NavType.StringType }),
+            ) { entry ->
+                val policyId = entry.arguments?.getString("policyId").orEmpty()
+                PolicyDetailRoute(
+                    viewModel = viewModel(factory = PolicyDetailViewModel.factory(container, policyId)),
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable(Routes.SECURITY) {

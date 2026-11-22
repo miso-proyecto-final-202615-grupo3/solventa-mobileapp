@@ -17,6 +17,8 @@ class SolventaApplication : Application() {
         // HU4.1.2: retoma las evidencias sin enviar (se envían cuando hay sesión) y, ya cargadas, borra los
         // archivos huérfanos (capturas canceladas o restos de un cierre).
         container.evidenceUploadQueue.start(onLoaded = container.evidenceFileStore::purgeExcept)
+        // HU3.2.x: carga la billetera guardada y la mantiene sincronizada.
+        container.walletSync.start()
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             object : DefaultLifecycleObserver {
