@@ -10,6 +10,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.solventa.app.R
 import com.solventa.app.data.claims.ClaimStatus
+import com.solventa.app.data.claims.CompensationStatus
+import java.math.BigDecimal
+import java.text.NumberFormat
+import java.util.Currency
+import java.util.Locale
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -52,3 +57,49 @@ const val PENDING_NAME = "…"
 
 /** Código de tipo legible solo si MS Pólizas no trajo el nombre (p. ej. una póliza que ya no está vigente). */
 fun humanize(code: String): String = code.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+
+/** HU4.2.3: los tipos paramétricos no están en el catálogo de reporte manual; su nombre viene de la app. */
+fun parametricTypeRes(code: String): Int? = when (code) {
+    "LLUVIA_EXTREMA" -> R.string.claim_type_heavy_rain
+    "RETRASO_VUELO" -> R.string.claim_type_flight_delay
+    else -> null
+}
+
+fun compensationStatusRes(status: CompensationStatus?): Int = when (status) {
+    CompensationStatus.PAYMENT_REQUESTED -> R.string.compensation_status_requested
+    CompensationStatus.PAID -> R.string.compensation_status_paid
+    null -> R.string.compensation_status_unknown
+}
+
+/**
+ * Monto en la moneda del contrato; sin decimales si el valor es entero (p. ej. `$ 300.000`).
+ * Los pesos se muestran con las convenciones de Colombia aunque el teléfono esté en otra región (p. ej. es-US).
+ */
+fun formatMoney(amount: BigDecimal, currencyCode: String, locale: Locale = moneyLocale(currencyCode)): String {
+    val format = NumberFormat.getCurrencyInstance(locale)
+    runCatching { Currency.getInstance(currencyCode) }.getOrNull()?.let { format.currency = it }
+    val whole = amount.stripTrailingZeros().scale() <= 0
+    format.minimumFractionDigits = if (whole) 0 else 2
+    format.maximumFractionDigits = if (whole) 0 else 2
+    return format.format(amount)
+}
+
+fun moneyLocale(currencyCode: String, base: Locale = Locale.getDefault()): Locale =
+    if (currencyCode == "COP" && base.country != "CO") Locale(base.language, "CO") else base
+
+/** Marca de los siniestros creados automáticamente por un evento cubierto (HU4.2.3). */
+@Composable
+fun AutomaticBadge(modifier: Modifier = Modifier) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = MaterialTheme.shapes.small,
+        modifier = modifier,
+    ) {
+        Text(
+            stringResource(R.string.claim_automatic),
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
+    }
+}

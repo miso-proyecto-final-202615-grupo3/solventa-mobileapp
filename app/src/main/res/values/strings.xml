@@ -337,4 +337,17 @@
     <string name="claim_detail_msg_failed">No pudimos abrir la evidencia. Intenta de nuevo.</string>
     <string name="claim_detail_viewer_close">Cerrar</string>
     <string name="claim_detail_evidence_hint">Toca una evidencia enviada para verla.</string>
+    <!-- HU4.2.3 · Siniestros paramétricos -->
+    <string name="claim_type_heavy_rain">Lluvia extrema</string>
+    <string name="claim_type_flight_delay">Retraso de vuelo</string>
+    <string name="claim_automatic">Automático</string>
+    <string name="claim_parametric_product">Seguro paramétrico</string>
+    <string name="claim_detail_origin">Origen</string>
+    <string name="claim_detail_origin_parametric">Creado automáticamente: ocurrió un evento cubierto por tu póliza. No tienes que reportarlo ni enviar evidencias.</string>
+    <string name="claim_detail_compensation">Compensación</string>
+    <string name="compensation_status_requested">Pago en proceso</string>
+    <string name="compensation_status_paid">Pagada</string>
+    <string name="compensation_status_unknown">En revisión</string>
+    <string name="notification_parametric_title">Siniestro automático %1$s</string>
+    <string name="notification_parametric_body">Ocurrió un evento cubierto por tu póliza. Tu compensación fue aprobada y el pago está en proceso.</string>
 </resources>

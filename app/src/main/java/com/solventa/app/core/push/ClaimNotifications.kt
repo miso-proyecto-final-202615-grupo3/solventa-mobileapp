@@ -17,7 +17,13 @@ import com.solventa.app.data.claims.ClaimStatus
 import com.solventa.app.feature.claims.list.statusRes
 
 /** Datos válidos de un mensaje `SINIESTRO_ESTADO` (contrato §3.4 de HU4.2.2). */
-data class ClaimStatusMessage(val claimId: String, val number: String, val status: ClaimStatus) {
+data class ClaimStatusMessage(
+    val claimId: String,
+    val number: String,
+    val status: ClaimStatus,
+    /** HU4.2.3: `true` si el siniestro se creó automáticamente por un evento paramétrico. */
+    val parametric: Boolean = false,
+) {
     companion object {
         const val TYPE = "SINIESTRO_ESTADO"
 
@@ -27,7 +33,7 @@ data class ClaimStatusMessage(val claimId: String, val number: String, val statu
             val id = data["siniestro_id"]?.takeIf { it.isNotBlank() } ?: return null
             val number = data["numero"]?.takeIf { it.isNotBlank() } ?: return null
             val status = data["estado"]?.let(ClaimStatus::fromCode) ?: return null
-            return ClaimStatusMessage(id, number, status)
+            return ClaimStatusMessage(id, number, status, parametric = data["canal"] == "PARAMETRICO")
         }
     }
 }
@@ -62,10 +68,15 @@ object ClaimNotifications {
         val requestCode = message.claimId.hashCode()
         val pending = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val status = context.getString(statusRes(message.status))
+        // HU4.2.3: el siniestro automático se anuncia como tal la primera vez (aprobado); los siguientes cambios, igual que siempre.
+        val newParametric = message.parametric && message.status == ClaimStatus.APPROVED
+        val title = if (newParametric) R.string.notification_parametric_title else R.string.notification_claim_status_title
+        val body = if (newParametric) context.getString(R.string.notification_parametric_body) else context.getString(R.string.notification_claim_status_body, status)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_check_circle)
-            .setContentTitle(context.getString(R.string.notification_claim_status_title, message.number))
-            .setContentText(context.getString(R.string.notification_claim_status_body, status))
+            .setContentTitle(context.getString(title, message.number))
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pending)
             .setAutoCancel(true)

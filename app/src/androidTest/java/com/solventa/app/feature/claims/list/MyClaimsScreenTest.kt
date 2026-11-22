@@ -9,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.solventa.app.R
 import com.solventa.app.core.designsystem.theme.SolventaTheme
+import com.solventa.app.data.claims.ClaimChannel
 import com.solventa.app.data.claims.ClaimStatus
 import com.solventa.app.data.claims.MockClaimsRepository
 import com.solventa.app.data.claims.ReportedClaim
@@ -92,5 +93,14 @@ class MyClaimsScreenTest {
         composeRule.onNodeWithTag(MyClaimsTestTags.NOTIFICATIONS_OFF).assertIsDisplayed()
         composeRule.onNodeWithTag(MyClaimsTestTags.ENABLE_NOTIFICATIONS).performClick()
         assertEquals(true, enabled)
+    }
+
+    @Test
+    fun siniestroAutomaticoSeMarcaEnLaLista() {
+        val automatic = claim.copy(id = "c-2", typeCode = "LLUVIA_EXTREMA", status = ClaimStatus.APPROVED, channel = ClaimChannel.PARAMETRIC)
+        setScreen(MyClaimsUiState(loading = false, claims = listOf(automatic), total = 1))
+
+        composeRule.onNodeWithTag(MyClaimsTestTags.AUTOMATIC_PREFIX + "c-2").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.claim_type_heavy_rain)).assertIsDisplayed()
     }
 }

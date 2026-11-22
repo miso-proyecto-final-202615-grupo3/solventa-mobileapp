@@ -6,7 +6,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.solventa.app.core.designsystem.theme.SolventaTheme
+import com.solventa.app.data.claims.ClaimChannel
 import com.solventa.app.data.claims.ClaimStatus
+import com.solventa.app.data.claims.Compensation
+import com.solventa.app.data.claims.CompensationStatus
 import com.solventa.app.data.claims.ReportedClaim
 import com.solventa.app.data.claims.evidence.EvidenceKind
 import com.solventa.app.data.claims.evidence.RemoteEvidence
@@ -14,6 +17,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.math.BigDecimal
 import java.time.Instant
 
 @RunWith(AndroidJUnit4::class)
@@ -61,6 +65,25 @@ class ClaimDetailScreenTest {
             }
         }
 
+        composeRule.onNodeWithTag(ClaimDetailTestTags.ADD_EVIDENCE).assertDoesNotExist()
+    }
+
+    @Test
+    fun siniestroParametricoMuestraLaCompensacionYNoPideEvidencias() {
+        val parametric = claim(ClaimStatus.APPROVED).copy(
+            typeCode = "LLUVIA_EXTREMA", evidences = emptyList(), channel = ClaimChannel.PARAMETRIC,
+            compensation = Compensation(BigDecimal("300000.00"), "COP", CompensationStatus.PAYMENT_REQUESTED),
+        )
+        composeRule.setContent {
+            SolventaTheme {
+                ClaimDetailScreen(
+                    state = ClaimDetailUiState(loading = false, claim = parametric),
+                    onOpenEvidence = {}, onAddEvidence = {}, onRetry = {}, onDismissMessage = {}, onBack = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(ClaimDetailTestTags.COMPENSATION).assertIsDisplayed()
         composeRule.onNodeWithTag(ClaimDetailTestTags.ADD_EVIDENCE).assertDoesNotExist()
     }
 }

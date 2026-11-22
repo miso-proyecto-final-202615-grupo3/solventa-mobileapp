@@ -16,6 +16,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -58,6 +61,14 @@ class MyClaimsViewModel(
 
     init {
         load()
+        // Al volver del fondo la pantalla de huella va encima de la lista y la sesión se renueva al desbloquear:
+        // con el token nuevo se recarga, para que se vea lo que cambió mientras tanto (p. ej. un siniestro automático).
+        viewModelScope.launch {
+            sessionStore.session.map { it?.accessToken?.takeIf(String::isNotBlank) }
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { token -> if (token != null) refresh() }
+        }
     }
 
     /** Primera página (al entrar, al cambiar el filtro, al reintentar o al volver del detalle). */
@@ -67,7 +78,8 @@ class MyClaimsViewModel(
     fun refresh() = load(silent = true)
 
     private fun load(silent: Boolean) {
-        val token = accessToken() ?: return goToLogin()
+        // Sin token durante una recarga silenciosa (la app sigue bloqueada) no se manda al login: se recarga al desbloquear.
+        val token = accessToken() ?: return if (silent) Unit else goToLogin()
         loadJob?.cancel()
         val showLoading = !silent || _uiState.value.claims.isEmpty()
         _uiState.update { it.copy(loading = showLoading, error = null) }
