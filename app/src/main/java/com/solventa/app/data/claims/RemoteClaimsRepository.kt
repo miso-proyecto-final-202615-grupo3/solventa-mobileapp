@@ -67,7 +67,12 @@ internal data class ClaimResponseDto(
     @SerialName("reportado_en") val reportedAt: String,
     val ubicacion: LocationDto? = null,
     val evidencias: List<EvidenceDto> = emptyList(),
+    val canal: String? = null,
+    val indemnizacion: CompensationDto? = null,
 )
+
+@Serializable
+internal data class CompensationDto(val monto: String, val moneda: String, val estado: String)
 
 @Serializable
 internal data class LocationDto(
@@ -312,6 +317,13 @@ class RemoteClaimsRepository(
                     capturedAt = Instant.parse(it.capturedAt),
                     uploadedAt = it.uploadedAt?.let(Instant::parse),
                 )
+            },
+            channel = ClaimChannel.fromCode(dto.canal),
+            compensation = dto.indemnizacion?.let {
+                // Un monto ilegible no tumba el detalle: simplemente no se muestra la compensación.
+                it.monto.toBigDecimalOrNull()?.let { amount ->
+                    Compensation(amount, it.moneda, CompensationStatus.fromCode(it.estado))
+                }
             },
         )
     }
