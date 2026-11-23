@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -26,11 +27,28 @@ import com.solventa.app.feature.home.HomeScreen
 import com.solventa.app.R
 import com.solventa.app.feature.activation.ActivationRoute
 import com.solventa.app.feature.activation.ActivationViewModel
+import android.Manifest
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.solventa.app.core.permissions.isAnyGranted
+import com.solventa.app.feature.claims.detail.ClaimDetailRoute
+import com.solventa.app.feature.claims.detail.ClaimDetailViewModel
+import com.solventa.app.feature.claims.list.MyClaimsRoute
+import com.solventa.app.feature.claims.list.MyClaimsViewModel
+import com.solventa.app.feature.claims.evidence.ClaimEvidenceRoute
+import com.solventa.app.feature.claims.evidence.ClaimEvidenceViewModel
+import com.solventa.app.feature.claims.report.ClaimReportRoute
+import com.solventa.app.feature.claims.report.ClaimReportViewModel
 import com.solventa.app.feature.consent.BiometricConsentRoute
 import com.solventa.app.feature.consent.BiometricConsentViewModel
 import com.solventa.app.feature.consent.ConsentDeclinedScreen
 import com.solventa.app.feature.login.LoginRoute
 import com.solventa.app.feature.login.LoginViewModel
+import com.solventa.app.feature.policies.PolicyDetailRoute
+import com.solventa.app.feature.policies.PolicyDetailViewModel
+import com.solventa.app.feature.policies.PolicyWalletRoute
+import com.solventa.app.feature.policies.PolicyWalletViewModel
 
 object Routes {
     const val LOGIN = "login"
@@ -41,6 +59,16 @@ object Routes {
     const val BIOMETRIC_CONSENT = "biometric-consent"
     const val CONSENT_DECLINED = "consent-declined"
     const val ACTIVATION = "activation"
+    const val CLAIM_REPORT = "claims/report"
+    const val CLAIM_EVIDENCE = "claims/{claimId}/evidence"
+    const val POLICIES = "policies"
+    const val POLICY_DETAIL = "policies/{policyId}"
+    const val MY_CLAIMS = "claims"
+    const val CLAIM_DETAIL = "claims/{claimId}"
+
+    fun claimEvidence(claimId: String) = "claims/$claimId/evidence"
+    fun claimDetail(claimId: String) = "claims/$claimId"
+    fun policyDetail(policyId: String) = "policies/$policyId"
 }
 
 @Composable
@@ -50,6 +78,8 @@ fun SolventaNavHost(
     navController: NavHostController = rememberNavController(),
 ) {
     val locked by container.appLockManager.locked.collectAsStateWithLifecycle()
+    val pendingClaimId by container.pendingDeepLink.claimId.collectAsStateWithLifecycle()
+    val session by container.sessionStore.session.collectAsStateWithLifecycle()
     // Con biometría activa la app arranca bloqueada sobre Inicio; la sesión se recupera al desbloquear.
     val startDestination = remember { if (locked) Routes.HOME else Routes.LOGIN }
 
@@ -59,6 +89,14 @@ fun SolventaNavHost(
 
     fun goToHome() = navController.navigate(Routes.HOME) {
         popUpTo(navController.graph.id) { inclusive = true }
+    }
+
+    LaunchedEffect(pendingClaimId, locked, session) {
+        if (!locked && session != null) {
+            container.pendingDeepLink.consume()?.let { claimId ->
+                navController.navigate(Routes.claimDetail(claimId))
+            }
+        }
     }
 
     // Consentimiento biométrico → activación: el teléfono sin vincular no puede saltarse este flujo.
@@ -101,13 +139,21 @@ fun SolventaNavHost(
             }
             composable(Routes.HOME) {
                 val session by container.sessionStore.session.collectAsStateWithLifecycle()
+                val pendingEvidence by container.evidenceUploadQueue.pendingClaims().collectAsStateWithLifecycle(emptyList())
                 val biometricEnabled = container.biometricVault.isEnabled()
                 HomeScreen(
                     clientName = session?.cliente?.nombre.orEmpty(),
                     deviceLinked = session?.cliente?.dispositivoVinculado == true,
                     showBiometricHint = !biometricEnabled && container.biometricSettings.offerDeclined,
                     onActivateDevice = ::goToActivationFlow,
+                    onReportClaim = { navController.navigate(Routes.CLAIM_REPORT) },
+                    onOpenMyClaims = { navController.navigate(Routes.MY_CLAIMS) },
+                    pendingEvidenceClaimNumber = pendingEvidence.firstOrNull()?.second,
+                    onOpenPendingEvidence = {
+                        pendingEvidence.firstOrNull()?.let { navController.navigate(Routes.claimEvidence(it.first)) }
+                    },
                     onOpenSecurity = { navController.navigate(Routes.SECURITY) },
+                    onOpenPolicies = { navController.navigate(Routes.POLICIES) },
                     onLogout = {
                         container.logout()
                         goToLogin()
@@ -157,6 +203,85 @@ fun SolventaNavHost(
                     },
                     onAccountNotFound = { uriHandler.openUri(BuildConfig.WEB_SIGNUP_URL) },
                     onConsentRequired = ::goToActivationFlow,
+                )
+            }
+            composable(Routes.CLAIM_REPORT) {
+                ClaimReportRoute(
+                    viewModel = viewModel(factory = ClaimReportViewModel.factory(container)),
+                    onEvidence = { claimId ->
+                        navController.navigate(Routes.claimEvidence(claimId)) {
+                            popUpTo(Routes.CLAIM_REPORT) { inclusive = true }
+                        }
+                    },
+                    onHome = ::goToHome,
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
+                )
+            }
+            composable(
+                Routes.CLAIM_EVIDENCE,
+                arguments = listOf(navArgument("claimId") { type = NavType.StringType }),
+            ) { entry ->
+                val claimId = entry.arguments?.getString("claimId").orEmpty()
+                val context = LocalContext.current
+                ClaimEvidenceRoute(
+                    viewModel = viewModel(
+                        factory = ClaimEvidenceViewModel.factory(container, claimId) {
+                            context.isAnyGranted(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        },
+                    ),
+                    uriFor = container.evidenceFileStore::uriFor,
+                    onHome = ::goToHome,
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
+                )
+            }
+            composable(Routes.POLICIES) {
+                PolicyWalletRoute(
+                    viewModel = viewModel(factory = PolicyWalletViewModel.factory(container)),
+                    onOpenPolicy = { navController.navigate(Routes.policyDetail(it)) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                Routes.POLICY_DETAIL,
+                arguments = listOf(navArgument("policyId") { type = NavType.StringType }),
+            ) { entry ->
+                val policyId = entry.arguments?.getString("policyId").orEmpty()
+                PolicyDetailRoute(
+                    viewModel = viewModel(factory = PolicyDetailViewModel.factory(container, policyId)),
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(Routes.MY_CLAIMS) {
+                MyClaimsRoute(
+                    viewModel = viewModel(factory = MyClaimsViewModel.factory(container)),
+                    onOpenClaim = { claimId -> navController.navigate(Routes.claimDetail(claimId)) },
+                    onReportClaim = { navController.navigate(Routes.CLAIM_REPORT) },
+                    onBack = { navController.popBackStack() },
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
+                )
+            }
+            composable(
+                Routes.CLAIM_DETAIL,
+                arguments = listOf(navArgument("claimId") { type = NavType.StringType }),
+            ) { entry ->
+                val claimId = entry.arguments?.getString("claimId").orEmpty()
+                ClaimDetailRoute(
+                    viewModel = viewModel(factory = ClaimDetailViewModel.factory(container, claimId)),
+                    onAddEvidence = { id -> navController.navigate(Routes.claimEvidence(id)) },
+                    onBack = { navController.popBackStack() },
+                    onLogin = {
+                        container.logout()
+                        goToLogin()
+                    },
                 )
             }
             composable(Routes.SECURITY) {

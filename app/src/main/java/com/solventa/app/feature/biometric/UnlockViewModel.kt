@@ -13,6 +13,8 @@ import com.solventa.app.core.biometric.BiometricSettings
 import com.solventa.app.core.biometric.BiometricVault
 import com.solventa.app.core.biometric.FailureOutcome
 import com.solventa.app.data.session.SessionStore
+import com.solventa.app.data.auth.AuthRepository
+import com.solventa.app.data.auth.SessionRefreshResult
 import com.solventa.app.di.AppContainer
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -29,6 +31,8 @@ sealed interface UnlockStatus {
     data class Failed(val attempt: Int, val maxAttempts: Int) : UnlockStatus
     data class LockedOut(val remainingSeconds: Long) : UnlockStatus
     data object BiometricChanged : UnlockStatus
+    data object RefreshingSession : UnlockStatus
+    data object RefreshUnavailable : UnlockStatus
 }
 
 enum class UnlockExit { UNLOCKED, USE_PASSWORD }
@@ -46,6 +50,7 @@ class UnlockViewModel(
     private val policy: BiometricLockoutPolicy,
     private val sessionStore: SessionStore,
     private val lockManager: AppLockManager,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UnlockUiState())
@@ -118,8 +123,30 @@ class UnlockViewModel(
             return
         }
         policy.registerSuccess()
-        sessionStore.save(session)
-        _uiState.update { it.copy(exit = UnlockExit.UNLOCKED) }
+        _uiState.update { it.copy(status = UnlockStatus.RefreshingSession) }
+        viewModelScope.launch {
+            when (val result = authRepository.refresh(session)) {
+                is SessionRefreshResult.Success -> {
+                    sessionStore.save(result.session)
+                    _uiState.update { it.copy(exit = UnlockExit.UNLOCKED) }
+                }
+                SessionRefreshResult.ReauthenticationRequired -> {
+                    vault.disable()
+                    settings.offerDeclined = false
+                    sessionStore.clear()
+                    _uiState.update { it.copy(exit = UnlockExit.USE_PASSWORD) }
+                }
+                // Sin conexión la identidad ya quedó confirmada con la biometría: se entra con la sesión guardada
+                // para consultar la billetera sin red (HU3.2.1). Al volver la conexión la sincronización renueva
+                // los tokens; si ya no sirven, las pantallas con red piden iniciar sesión como siempre.
+                SessionRefreshResult.NetworkError -> {
+                    sessionStore.save(session)
+                    _uiState.update { it.copy(exit = UnlockExit.UNLOCKED) }
+                }
+                SessionRefreshResult.ServiceUnavailable ->
+                    _uiState.update { it.copy(status = UnlockStatus.RefreshUnavailable) }
+            }
+        }
     }
 
     /** Cambió la biometría del teléfono: se desactiva y se vuelve a ofrecer tras entrar con contraseña. */
@@ -154,6 +181,7 @@ class UnlockViewModel(
                     policy = container.biometricLockoutPolicy,
                     sessionStore = container.sessionStore,
                     lockManager = container.appLockManager,
+                    authRepository = container.authRepository,
                 )
             }
         }

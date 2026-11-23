@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HU4.1.2: único directorio que el FileProvider comparte (evidencias en almacenamiento privado). -->
+<paths>
+    <files-path name="evidencias" path="evidencias/" />
+    <!-- HU3.2.1: PDF del certificado descifrado temporalmente para abrirlo con el visor del sistema. -->
+    <cache-path name="certificados" path="certificados/" />
+</paths>

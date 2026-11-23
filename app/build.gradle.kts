@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val hasFirebaseConfig = file("google-services.json").exists()
+if (hasFirebaseConfig) apply(plugin = "com.google.gms.google-services")
+
 // Backend que usa la app. Se cambia sin tocar código, p. ej. en ~/.gradle/gradle.properties:
 //   solventa.useMockBackend=false
 //   solventa.bffMobileUrl=http://10.0.2.2:8001   (debug: BFF Móvil en docker compose, visto desde el emulador)
@@ -15,6 +18,7 @@ plugins {
 //   solventa.mockCaptureType=FRAMES|SDK  tipo de captura del backend simulado
 //   solventa.diditSdkEnabled=false       SDK real de Didit (solo demostración); si no, lanzador simulado
 //   solventa.demoActivationEmail=        correo para el modo demo del BFF sin JWT (solo debug, nunca en release)
+//   solventa.useMockClaims=              siniestros simulados (HU4.1.1); por defecto igual que useMockBackend
 val useMockBackendProperty = providers.gradleProperty("solventa.useMockBackend").map { it.toBoolean() }
 val useMockBackendDebug = useMockBackendProperty.orElse(true).get()
 val useMockBackendRelease = useMockBackendProperty.orElse(false).get()
@@ -24,6 +28,10 @@ val releaseBffMobileUrl = providers.gradleProperty("solventa.release.bffMobileUr
 val useMockConsentProperty = providers.gradleProperty("solventa.useMockConsent").map { it.toBoolean() }
 val useMockConsentDebug = useMockConsentProperty.orElse(useMockBackendDebug).get()
 val useMockConsentRelease = useMockConsentProperty.orElse(useMockBackendRelease).get()
+// Siniestros (HU4.1.1): simulados junto con el backend simulado, o a pedido con la propiedad.
+val useMockClaimsProperty = providers.gradleProperty("solventa.useMockClaims").map { it.toBoolean() }
+val useMockClaimsDebug = useMockClaimsProperty.orElse(useMockBackendDebug).get()
+val useMockClaimsRelease = useMockClaimsProperty.orElse(useMockBackendRelease).get()
 val mockCaptureType = providers.gradleProperty("solventa.mockCaptureType").orElse("FRAMES").get()
 val diditSdkEnabled = providers.gradleProperty("solventa.diditSdkEnabled").map { it.toBoolean() }.orElse(false).get()
 val demoActivationEmail = providers.gradleProperty("solventa.demoActivationEmail").orElse("").get().trim()
@@ -51,13 +59,17 @@ android {
         debug {
             buildConfigField("boolean", "USE_MOCK_BACKEND", useMockBackendDebug.toString())
             buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsentDebug.toString())
+            buildConfigField("boolean", "USE_MOCK_CLAIMS", useMockClaimsDebug.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$bffMobileUrl\"")
+            buildConfigField("boolean", "HAS_FIREBASE_CONFIG", hasFirebaseConfig.toString())
             buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"$demoActivationEmail\"")
         }
         release {
             buildConfigField("boolean", "USE_MOCK_BACKEND", useMockBackendRelease.toString())
             buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsentRelease.toString())
+            buildConfigField("boolean", "USE_MOCK_CLAIMS", useMockClaimsRelease.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$releaseBffMobileUrl\"")
+            buildConfigField("boolean", "HAS_FIREBASE_CONFIG", hasFirebaseConfig.toString())
             buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"\"")
             isMinifyEnabled = false
             proguardFiles(
@@ -111,12 +123,20 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
+    // HU4.2.1: miniaturas y visor de evidencias (carga la URL temporal de S3).
+    implementation(libs.coil.compose)
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.mlkit.face.detection)
     implementation(libs.didit.sdk.core)
+    // HU4.1.2: ubicación del siniestro y orientación de las fotos.
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.exifinterface)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

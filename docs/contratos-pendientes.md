@@ -8,7 +8,7 @@ Estado de cada pregunta al 2026-10-31. El contrato canónico de HU3.1.1 está en
 2. ✅ Implementada en HU3.1.1: el login recibe `installation_id` opcional y devuelve el bloque opcional `cliente` (`id`, `nombre`, `estado_kyc`, `dispositivo_vinculado`), que el BFF obtiene de `GET /clientes/resumen-movil` del MS Identidad. Sin bloque `cliente`, la app asume **no vinculado** y va a la activación.
 3. ✅ Resuelta: Cognito (`prevent_user_existence_errors`) y el MS Identidad responden 401 en ambos casos, así que con backend real se muestra el mensaje genérico de credenciales inválidas. Por eso el login muestra siempre el enlace al registro web.
 4. ⏳ URL del registro web para el enlace de "Ir al registro web" (dev: CloudFront de la web app; confirmar la ruta exacta del registro).
-4b. ⏳ Renovar la sesión: no hay endpoint de refresh en el MS Identidad ni en el BFF Móvil.
+4b. ✅ Renovar la sesión: `POST /api/v1/bff-mobile/auth/refresh` (Identidad `POST /clientes/renovar-sesion`); la app lo usa al desbloquear con biometría.
 4c. ✅ Implementada en HU3.1.1: el BFF Móvil valida el access token de Cognito (firma, `iss`, `token_use`, `client_id` del mismo cliente que usa el MS Identidad) y obtiene el correo con `GetUser` de Cognito (el token solo trae el `sub`).
 
 ## Consentimiento biométrico (HU3.1.3)
@@ -21,6 +21,20 @@ Estado de cada pregunta al 2026-10-31. El contrato canónico de HU3.1.1 está en
 
 ## Vinculación del dispositivo
 9. ✅ Resuelta: la vinculación ocurre en la misma respuesta de la verificación aprobada. Hay un vínculo activo por cliente y por instalación: activar otra cuenta en el mismo teléfono revoca el vínculo anterior, y un teléfono nuevo revoca el anterior del cliente. Tabla aprobada: `dispositivos_vinculados` (más `sesiones_activacion` e `intentos_prueba_vida`); detalle y diagrama en `solventa-backend/docs/planning/HU3.1.1-diagramas.md`.
+
+## Siniestros (HU4.1.1)
+13. ✅ Implementada en la rama `feat/HU4.1.1-registrar-siniestro`: `GET /siniestros/polizas-elegibles`, `POST /siniestros` (`Idempotency-Key` obligatorio, `201` nuevo / `200` reintento) y `GET /siniestros/{id}`. Contrato canónico en la sección 3 de `solventa-backend/docs/planning/HU4.1.1-plan-tecnico.md`; muestras en [app/src/test/resources/contracts/siniestros](../app/src/test/resources/contracts/siniestros).
+14. ✅ DEP-1 resuelta (13/11/2026): MS Pólizas expone `GET /polizas/mis-polizas` y `GET /polizas/{id}` con `X-Client-Id` (#265, HU1.3.8). MS Siniestros los consume (`POLIZAS_ADAPTER=http`) y toma el código y nombre del producto del catálogo del Motor de Cotización (`GET /productos`). Pendiente: probarlo de punta a punta con una póliza emitida.
+15. ✅ DEP-2 resuelta: MS Pólizas deja la póliza en `EMITIDA`; son elegibles `EMITIDA` y `VIGENTE` (`ESTADOS_POLIZA_ELEGIBLES`) dentro de su vigencia.
+
+## Evidencias y ubicación (HU4.1.2)
+16. ✅ Implementada en la rama `feat/HU4.1.1-registrar-siniestro` (junto con HU4.1.1): `POST /siniestros/{id}/evidencias` (carga prefirmada), subida directa a S3/MinIO, `POST …/evidencias/{evidencia_id}/confirmacion`, `PUT /siniestros/{id}/ubicacion` y el detalle con `ubicacion` y `evidencias`. Contrato canónico en la sección 3 de `solventa-backend/docs/planning/HU4.1.2-plan-tecnico.md`; muestras en [app/src/test/resources/contracts/evidencias](../app/src/test/resources/contracts/evidencias).
+17. ⏳ Permisos S3/KMS del rol de MS Siniestros en AWS (sección 7.1 del plan del backend); mientras tanto, solo funciona en local con MinIO.
+
+## Billetera de pólizas sin conexión (HU3.2.1 y HU3.2.2)
+18. ✅ Implementada en la rama `feat/HU3.2-polizas-bff-mobile` del backend: `GET /api/v1/bff-mobile/polizas` (todas las pólizas del cliente del token, con nombres de producto y de cobertura tomados del catálogo; `nombre: null` si el catálogo no los conoce) y `GET /api/v1/bff-mobile/polizas/{id}/certificado/descarga` (PDF). Muestra del contrato en [app/src/test/resources/contracts/polizas](../app/src/test/resources/contracts/polizas). No cambia ningún endpoint existente. Los importes llegan como texto decimal.
+19. ✅ La app guarda la respuesta completa y el PDF cifrados (AES-GCM, llave de Android Keystore sin biometría por uso) y la reemplaza entera en cada sincronización. Sin conexión, el desbloqueo biométrico entra con la sesión guardada (único cambio al flujo de entrada); al volver la conexión la sincronización renueva los tokens.
+20. ⏳ Probar de punta a punta con una póliza emitida real y con el certificado ya generado (`GENERADO`).
 
 ## Transversal
 10. ✅ Implementada en HU3.1.1 para los endpoints nuevos: `{codigo, mensaje, correlation_id}` y header `X-Correlation-Id` de punta a punta. Falta extenderlo al resto de endpoints y armar el catálogo de códigos.

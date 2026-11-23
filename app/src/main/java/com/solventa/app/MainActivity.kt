@@ -1,6 +1,7 @@
 package com.solventa.app
 
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +18,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val container = (application as SolventaApplication).container
+        container.pendingDeepLink.setClaim(intent?.getStringExtra("claim_id"))
         setContent {
             SolventaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -27,5 +29,11 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        (application as SolventaApplication).container.pendingDeepLink.setClaim(intent.getStringExtra("claim_id"))
     }
 }
