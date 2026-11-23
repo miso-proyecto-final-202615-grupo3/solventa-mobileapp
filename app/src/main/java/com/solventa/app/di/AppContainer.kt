@@ -61,6 +61,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import java.io.File
+import com.solventa.app.core.crypto.KeystoreLocalCipher
+import com.solventa.app.core.crypto.LocalCipher
+import com.solventa.app.data.policies.MockPolicyRepository
+import com.solventa.app.data.policies.PolicyRepository
+import com.solventa.app.data.policies.RemotePolicyRepository
+import com.solventa.app.data.policies.local.CertificateStore
+import com.solventa.app.data.policies.local.EncryptedFileCertificateStore
+import com.solventa.app.data.policies.local.EncryptedFileWalletStore
+import com.solventa.app.data.policies.local.WalletStore
+import com.solventa.app.data.policies.sync.AndroidConnectivityMonitor
+import com.solventa.app.data.policies.sync.ConnectivityMonitor
+import com.solventa.app.data.policies.sync.WalletSync
 import java.time.Clock
 
 /** Contenedor de dependencias manual; suficiente para el tamaño actual de la app. */
@@ -124,6 +136,40 @@ class AppContainer(context: Context) {
 
     /** Reloj del sistema en la zona del teléfono: la fecha del siniestro es la local del cliente. */
     val clock: Clock = Clock.systemDefaultZone()
+
+    // --- HU3.2.1 y HU3.2.2 · Billetera de pólizas sin conexión ---------------------------------
+
+    /** Carpeta de caché de la app: ahí se descifra, de forma temporal, el certificado que se abre. */
+    val cacheDir: File = context.cacheDir
+
+    private val localCipher: LocalCipher = KeystoreLocalCipher()
+    private val walletStore: WalletStore =
+        EncryptedFileWalletStore(File(context.filesDir, "billetera/polizas.bin"), localCipher)
+    val certificateStore: CertificateStore =
+        EncryptedFileCertificateStore(File(context.filesDir, "billetera/certificados"), localCipher)
+
+    val policyRepository: PolicyRepository =
+        if (BuildConfig.USE_MOCK_BACKEND) {
+            MockPolicyRepository()
+        } else {
+            RemotePolicyRepository(
+                baseUrl = BuildConfig.BFF_MOBILE_URL,
+                demoEmail = BuildConfig.DEMO_ACTIVATION_EMAIL.takeIf { it.isNotBlank() },
+            )
+        }
+
+    val connectivityMonitor: ConnectivityMonitor = AndroidConnectivityMonitor(context)
+
+    /** Vive con la app: sincroniza al haber sesión y al recuperar la conexión. */
+    val walletSync = WalletSync(
+        repository = policyRepository,
+        store = walletStore,
+        certificates = certificateStore,
+        sessionStore = sessionStore,
+        authRepository = authRepository,
+        connectivity = connectivityMonitor,
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+    )
 
     // --- HU4.1.2 · Evidencias y ubicación -----------------------------------------------------
 

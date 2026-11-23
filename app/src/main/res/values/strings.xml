@@ -299,6 +299,38 @@
     </plurals>
     <string name="evidence_done_next">Las revisaremos junto con tu reporte.</string>
     <string name="evidence_done_add_more">Agregar otra evidencia</string>
+
+    <!-- HU3.2.1 y HU3.2.2 · Billetera de pólizas -->
+    <string name="home_open_policies">Mis pólizas</string>
+    <string name="policies_title">Mis pólizas</string>
+    <string name="policies_number">Póliza %1$s</string>
+    <string name="policies_valid_range">Vigencia: %1$s – %2$s</string>
+    <string name="policies_refresh">Actualizar</string>
+    <string name="policies_back">Volver</string>
+    <string name="policies_syncing">Sincronizando…</string>
+    <string name="policies_offline_banner">Sin conexión. Estás viendo la información guardada en este teléfono.</string>
+    <string name="policies_sync_failed">No pudimos actualizar tus pólizas. Lo intentaremos de nuevo. Mientras tanto ves la última versión guardada.</string>
+    <string name="policies_last_sync">Última sincronización: %1$s</string>
+    <string name="policies_never_synced">Aún no se ha sincronizado.</string>
+    <string name="policies_empty">No tienes pólizas emitidas todavía.</string>
+    <string name="policies_empty_offline">Aún no hay pólizas guardadas en este teléfono. Conéctate a internet para descargarlas.</string>
+    <string name="policies_empty_unsynced">Aún no hay pólizas guardadas. Toca Actualizar para descargarlas.</string>
+    <string name="policies_loading">Cargando tus pólizas…</string>
+    <string name="policy_status_active">Vigente</string>
+    <string name="policy_status_canceled">Cancelada</string>
+    <string name="policy_status_expired">Vencida</string>
+    <string name="policy_not_found">Esta póliza ya no está disponible en tu billetera.</string>
+    <string name="policy_credential">Credencial digital</string>
+    <string name="policy_premium">Prima total: %1$s</string>
+    <string name="policy_coverages">Coberturas</string>
+    <string name="policy_coverage_unnamed">Cobertura</string>
+    <string name="policy_coverage_limit">Límite asegurado: %1$s</string>
+    <string name="policy_coverage_deductible">Deducible: %1$s</string>
+    <string name="policy_open_certificate">Abrir certificado (PDF)</string>
+    <string name="policy_certificate_saved">El certificado está guardado cifrado en este teléfono.</string>
+    <string name="policy_certificate_pending">El certificado aún no está disponible. Se descargará cuando esté listo y haya conexión.</string>
+    <string name="policy_certificate_unavailable_offline">El certificado no se ha guardado en este teléfono. Conéctate a internet para descargarlo.</string>
+    <string name="policy_certificate_open_failed">No se pudo abrir el certificado. Instala un visor de PDF e inténtalo de nuevo.</string>
     <!-- HU4.2.1 · Mis siniestros y detalle -->
     <string name="home_my_claims">Mis siniestros</string>
     <string name="my_claims_title">Mis siniestros</string>

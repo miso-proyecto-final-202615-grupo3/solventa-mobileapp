@@ -34,6 +34,8 @@ fun HomeScreen(
     /** HU4.1.2: folio de un siniestro con evidencias sin enviar, si hay. */
     pendingEvidenceClaimNumber: String? = null,
     onOpenPendingEvidence: () -> Unit = {},
+    /** HU3.2.x: billetera de pólizas, consultable sin conexión. */
+    onOpenPolicies: () -> Unit = {},
     /** HU4.2.1: "Mis siniestros". */
     onOpenMyClaims: () -> Unit = {},
 ) {
@@ -91,6 +93,8 @@ fun HomeScreen(
             SolventaPrimaryButton(text = stringResource(R.string.home_my_claims), onClick = onOpenMyClaims)
             Spacer(Modifier.height(12.dp))
         }
+        SolventaPrimaryButton(text = stringResource(R.string.home_open_policies), onClick = onOpenPolicies)
+        Spacer(Modifier.height(12.dp))
         SolventaPrimaryButton(
             text = stringResource(R.string.home_open_security),
             onClick = onOpenSecurity,

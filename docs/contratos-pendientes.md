@@ -31,6 +31,11 @@ Estado de cada pregunta al 2026-10-31. El contrato canónico de HU3.1.1 está en
 16. ✅ Implementada en la rama `feat/HU4.1.1-registrar-siniestro` (junto con HU4.1.1): `POST /siniestros/{id}/evidencias` (carga prefirmada), subida directa a S3/MinIO, `POST …/evidencias/{evidencia_id}/confirmacion`, `PUT /siniestros/{id}/ubicacion` y el detalle con `ubicacion` y `evidencias`. Contrato canónico en la sección 3 de `solventa-backend/docs/planning/HU4.1.2-plan-tecnico.md`; muestras en [app/src/test/resources/contracts/evidencias](../app/src/test/resources/contracts/evidencias).
 17. ⏳ Permisos S3/KMS del rol de MS Siniestros en AWS (sección 7.1 del plan del backend); mientras tanto, solo funciona en local con MinIO.
 
+## Billetera de pólizas sin conexión (HU3.2.1 y HU3.2.2)
+18. ✅ Implementada en la rama `feat/HU3.2-polizas-bff-mobile` del backend: `GET /api/v1/bff-mobile/polizas` (todas las pólizas del cliente del token, con nombres de producto y de cobertura tomados del catálogo; `nombre: null` si el catálogo no los conoce) y `GET /api/v1/bff-mobile/polizas/{id}/certificado/descarga` (PDF). Muestra del contrato en [app/src/test/resources/contracts/polizas](../app/src/test/resources/contracts/polizas). No cambia ningún endpoint existente. Los importes llegan como texto decimal.
+19. ✅ La app guarda la respuesta completa y el PDF cifrados (AES-GCM, llave de Android Keystore sin biometría por uso) y la reemplaza entera en cada sincronización. Sin conexión, el desbloqueo biométrico entra con la sesión guardada (único cambio al flujo de entrada); al volver la conexión la sincronización renueva los tokens.
+20. ⏳ Probar de punta a punta con una póliza emitida real y con el certificado ya generado (`GENERADO`).
+
 ## Transversal
 10. ✅ Implementada en HU3.1.1 para los endpoints nuevos: `{codigo, mensaje, correlation_id}` y header `X-Correlation-Id` de punta a punta. Falta extenderlo al resto de endpoints y armar el catálogo de códigos.
 11. ⏳ Duración de tokens y estrategia de refresh. Propuesta: refresh token cifrado con Android Keystore y desbloqueado con biometría (HU3.1.2).

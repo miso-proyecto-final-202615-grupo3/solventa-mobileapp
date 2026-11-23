@@ -136,7 +136,14 @@ class UnlockViewModel(
                     sessionStore.clear()
                     _uiState.update { it.copy(exit = UnlockExit.USE_PASSWORD) }
                 }
-                SessionRefreshResult.NetworkError, SessionRefreshResult.ServiceUnavailable ->
+                // Sin conexión la identidad ya quedó confirmada con la biometría: se entra con la sesión guardada
+                // para consultar la billetera sin red (HU3.2.1). Al volver la conexión la sincronización renueva
+                // los tokens; si ya no sirven, las pantallas con red piden iniciar sesión como siempre.
+                SessionRefreshResult.NetworkError -> {
+                    sessionStore.save(session)
+                    _uiState.update { it.copy(exit = UnlockExit.UNLOCKED) }
+                }
+                SessionRefreshResult.ServiceUnavailable ->
                     _uiState.update { it.copy(status = UnlockStatus.RefreshUnavailable) }
             }
         }

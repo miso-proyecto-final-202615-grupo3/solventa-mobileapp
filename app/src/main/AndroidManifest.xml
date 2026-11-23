@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- HU3.2.2: detectar cuándo el teléfono recupera la conexión para sincronizar la billetera. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- HU4.1.2: ubicación del siniestro. Se acepta la aproximada si el usuario no da la precisa. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
