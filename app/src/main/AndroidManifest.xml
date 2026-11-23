@@ -9,6 +9,7 @@
     <!-- HU4.1.2: ubicación del siniestro. Se acepta la aproximada si el usuario no da la precisa. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- La prueba de vida usa la cámara frontal, pero la app se instala aunque no exista (se informa). -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
@@ -46,6 +47,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".core.push.SolventaMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <!-- HU4.1.2: comparte con la cámara solo la carpeta privada de evidencias, con permiso temporal. -->
         <provider

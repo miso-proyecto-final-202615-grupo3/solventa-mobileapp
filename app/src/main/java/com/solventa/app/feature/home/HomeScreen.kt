@@ -36,6 +36,8 @@ fun HomeScreen(
     onOpenPendingEvidence: () -> Unit = {},
     /** HU3.2.x: billetera de pólizas, consultable sin conexión. */
     onOpenPolicies: () -> Unit = {},
+    /** HU4.2.1: "Mis siniestros". */
+    onOpenMyClaims: () -> Unit = {},
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -87,6 +89,8 @@ fun HomeScreen(
         } else {
             // Entrada provisional hasta la barra "Pólizas · Siniestros · Perfil" de la billetera (HU3.2.x).
             SolventaPrimaryButton(text = stringResource(R.string.home_report_claim), onClick = onReportClaim)
+            Spacer(Modifier.height(12.dp))
+            SolventaPrimaryButton(text = stringResource(R.string.home_my_claims), onClick = onOpenMyClaims)
             Spacer(Modifier.height(12.dp))
         }
         SolventaPrimaryButton(text = stringResource(R.string.home_open_policies), onClick = onOpenPolicies)

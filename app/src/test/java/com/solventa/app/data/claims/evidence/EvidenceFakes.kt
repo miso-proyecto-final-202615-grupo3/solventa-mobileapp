@@ -41,6 +41,16 @@ class FakeEvidenceRepository : EvidenceRepository {
         return locationResult
     }
 
+    /** HU4.2.1: siguiente respuesta de la descarga (por defecto, una URL lista). */
+    val downloads = ArrayDeque<DownloadResult>()
+    val downloaded = mutableListOf<String>()
+
+    override suspend fun download(accessToken: String, claimId: String, evidenceId: String, correlationId: String): DownloadResult {
+        downloaded += evidenceId
+        return downloads.removeFirstOrNull()
+            ?: DownloadResult.Ready("https://s3.test/$evidenceId?firma", "image/jpeg", Instant.parse("2030-01-01T00:05:00Z"))
+    }
+
     companion object {
         fun ticket(id: String) = UploadTicket(id, "https://s3.test/bucket", mapOf("key" to id), Instant.parse("2030-01-01T00:00:00Z"), 5L * 1024 * 1024)
     }

@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val hasFirebaseConfig = file("google-services.json").exists()
+if (hasFirebaseConfig) apply(plugin = "com.google.gms.google-services")
+
 // Backend que usa la app. Se cambia sin tocar código, p. ej. en ~/.gradle/gradle.properties:
 //   solventa.useMockBackend=false
 //   solventa.bffMobileUrl=http://10.0.2.2:8001   (debug: BFF Móvil en docker compose, visto desde el emulador)
@@ -58,6 +61,7 @@ android {
             buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsentDebug.toString())
             buildConfigField("boolean", "USE_MOCK_CLAIMS", useMockClaimsDebug.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$bffMobileUrl\"")
+            buildConfigField("boolean", "HAS_FIREBASE_CONFIG", hasFirebaseConfig.toString())
             buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"$demoActivationEmail\"")
         }
         release {
@@ -65,6 +69,7 @@ android {
             buildConfigField("boolean", "USE_MOCK_CONSENT", useMockConsentRelease.toString())
             buildConfigField("boolean", "USE_MOCK_CLAIMS", useMockClaimsRelease.toString())
             buildConfigField("String", "BFF_MOBILE_URL", "\"$releaseBffMobileUrl\"")
+            buildConfigField("boolean", "HAS_FIREBASE_CONFIG", hasFirebaseConfig.toString())
             buildConfigField("String", "DEMO_ACTIVATION_EMAIL", "\"\"")
             isMinifyEnabled = false
             proguardFiles(
@@ -118,6 +123,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
+    // HU4.2.1: miniaturas y visor de evidencias (carga la URL temporal de S3).
+    implementation(libs.coil.compose)
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
@@ -127,6 +134,9 @@ dependencies {
     // HU4.1.2: ubicación del siniestro y orientación de las fotos.
     implementation(libs.play.services.location)
     implementation(libs.androidx.exifinterface)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

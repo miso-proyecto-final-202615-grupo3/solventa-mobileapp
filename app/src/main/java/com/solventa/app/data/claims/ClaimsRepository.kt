@@ -13,4 +13,10 @@ interface ClaimsRepository {
 
     /** `GET /api/v1/bff-mobile/siniestros/{id}`. */
     suspend fun claim(accessToken: String, claimId: String, correlationId: String): ClaimResult
+
+    /**
+     * HU4.2.1 · `GET /api/v1/bff-mobile/siniestros?poliza_id=&pagina=&tamano=`: los siniestros del cliente,
+     * más reciente primero. [policyId] `null` = todas las pólizas; [page] empieza en 1.
+     */
+    suspend fun claims(accessToken: String, policyId: String?, page: Int, pageSize: Int, correlationId: String): ClaimsPageResult
 }

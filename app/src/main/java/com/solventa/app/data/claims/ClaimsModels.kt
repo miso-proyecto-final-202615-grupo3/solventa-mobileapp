@@ -56,7 +56,37 @@ data class ReportedClaim(
     /** HU4.1.2: solo en el detalle (`GET /siniestros/{id}`). */
     val location: LocationFix? = null,
     val evidences: List<RemoteEvidence> = emptyList(),
-)
+    /** HU4.2.3: reportado por el cliente o creado automáticamente por un evento paramétrico. */
+    val channel: ClaimChannel = ClaimChannel.MOBILE,
+    /** HU4.2.3: solo en el detalle, cuando el siniestro tiene indemnización. */
+    val compensation: Compensation? = null,
+) {
+    val isParametric: Boolean get() = channel == ClaimChannel.PARAMETRIC
+}
+
+enum class ClaimChannel(val code: String) {
+    MOBILE("MOVIL"),
+    PARAMETRIC("PARAMETRICO"),
+    ;
+
+    companion object {
+        /** Un canal desconocido se trata como reporte del cliente (no cambia lo que se muestra). */
+        fun fromCode(code: String?): ClaimChannel = entries.firstOrNull { it.code == code } ?: MOBILE
+    }
+}
+
+enum class CompensationStatus(val code: String) {
+    PAYMENT_REQUESTED("PAGO_SOLICITADO"),
+    PAID("PAGADA"),
+    ;
+
+    companion object {
+        fun fromCode(code: String): CompensationStatus? = entries.firstOrNull { it.code == code }
+    }
+}
+
+/** HU4.2.3: compensación aprobada; [amount] es exacto (llega como texto decimal). */
+data class Compensation(val amount: java.math.BigDecimal, val currency: String, val status: CompensationStatus?)
 
 sealed interface PoliciesResult {
     data class Loaded(val policies: List<EligiblePolicy>) : PoliciesResult
@@ -88,4 +118,16 @@ sealed interface ClaimResult {
     data object SessionExpired : ClaimResult
     data object NetworkError : ClaimResult
     data object ServiceUnavailable : ClaimResult
+}
+
+/** HU4.2.1: una página de "Mis siniestros", más reciente primero. */
+data class ClaimsPage(val claims: List<ReportedClaim>, val page: Int, val pageSize: Int, val total: Int) {
+    val hasMore: Boolean get() = page * pageSize < total
+}
+
+sealed interface ClaimsPageResult {
+    data class Loaded(val page: ClaimsPage) : ClaimsPageResult
+    data object SessionExpired : ClaimsPageResult
+    data object NetworkError : ClaimsPageResult
+    data object ServiceUnavailable : ClaimsPageResult
 }

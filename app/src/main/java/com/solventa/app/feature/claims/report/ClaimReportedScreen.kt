@@ -1,5 +1,11 @@
 package com.solventa.app.feature.claims.report
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.Card
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -22,6 +29,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.solventa.app.R
 import com.solventa.app.core.designsystem.component.SolventaPrimaryButton
 import com.solventa.app.core.designsystem.component.SolventaSecondaryButton
@@ -41,6 +49,10 @@ fun ClaimReportedScreen(
     onHome: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val requestNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val canAskNotifications = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
     Column(
         verticalArrangement = Arrangement.Center,
         modifier = modifier
@@ -80,6 +92,20 @@ fun ClaimReportedScreen(
         )
         Spacer(Modifier.height(20.dp))
         Text(stringResource(R.string.claim_done_next), style = MaterialTheme.typography.bodyMedium)
+        if (canAskNotifications) {
+            Spacer(Modifier.height(16.dp))
+            Card {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.claim_notifications_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.claim_notifications_body), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(8.dp))
+                    SolventaSecondaryButton(
+                        text = stringResource(R.string.claim_notifications_action),
+                        onClick = { requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS) },
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(32.dp))
         SolventaPrimaryButton(
             text = stringResource(R.string.claim_add_evidence),

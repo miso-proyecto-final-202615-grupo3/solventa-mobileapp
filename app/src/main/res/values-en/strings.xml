@@ -197,6 +197,17 @@
     <string name="claim_done_policy">Policy %1$s</string>
     <string name="claim_done_reported_at">Reported on %1$s</string>
     <string name="claim_done_next">You can now attach photos and the location so we can review it faster.</string>
+    <string name="claim_notifications_title">Stay up to date</string>
+    <string name="claim_notifications_body">Enable notifications to learn about updates to your claim.</string>
+    <string name="claim_notifications_action">Enable notifications</string>
+    <!-- HU4.2.2 · Push notifications -->
+    <string name="notification_channel_claims">Claims</string>
+    <string name="notification_channel_claims_description">Status changes of your claims.</string>
+    <string name="notification_claim_status_title">Your claim %1$s changed status</string>
+    <string name="notification_claim_status_body">It is now: %1$s</string>
+    <string name="notifications_off_title">Notifications are off</string>
+    <string name="notifications_off_body">Turn them on to know when the status of your claims changes.</string>
+    <string name="notifications_off_action">Turn on notifications</string>
     <string name="claim_add_evidence">Attach evidence</string>
     <!-- HU4.1.2 · Claim evidence and location -->
     <string name="evidence_title">Claim evidence</string>
@@ -311,4 +322,54 @@
     <string name="policy_certificate_pending">The certificate isn\'t available yet. It will download when it\'s ready and you\'re online.</string>
     <string name="policy_certificate_unavailable_offline">The certificate isn\'t saved on this phone. Connect to the internet to download it.</string>
     <string name="policy_certificate_open_failed">Couldn\'t open the certificate. Install a PDF viewer and try again.</string>
+    <!-- HU4.2.1 · My claims and detail -->
+    <string name="home_my_claims">My claims</string>
+    <string name="my_claims_title">My claims</string>
+    <string name="my_claims_filter_all">All</string>
+    <plurals name="my_claims_count_plural">
+        <item quantity="one">%1$d claim</item>
+        <item quantity="other">%1$d claims</item>
+    </plurals>
+    <string name="my_claims_empty">You have not reported any claims yet.</string>
+    <string name="my_claims_empty_policy">There are no claims for this policy.</string>
+    <string name="my_claims_load_more">Show more</string>
+    <string name="my_claims_reported_on">Reported on %1$s</string>
+    <string name="my_claims_error_network">No connection. Check your internet and try again.</string>
+    <string name="my_claims_error_service">We could not load the information. Try again.</string>
+    <string name="claim_status_reported">Reported</string>
+    <string name="claim_status_in_review">Under review</string>
+    <string name="claim_status_approved">Approved</string>
+    <string name="claim_status_rejected">Rejected</string>
+    <string name="claim_status_paid">Paid</string>
+    <string name="claim_detail_title">Claim details</string>
+    <string name="claim_detail_type">Type</string>
+    <string name="claim_detail_policy">Policy</string>
+    <string name="claim_detail_occurred">Occurred</string>
+    <string name="claim_detail_reported">Reported</string>
+    <string name="claim_detail_location">Location</string>
+    <string name="claim_detail_location_value">Attached (accuracy ±%1$d m)</string>
+    <string name="claim_detail_location_none">No location</string>
+    <string name="claim_detail_evidence_title">Evidence</string>
+    <string name="claim_detail_evidence_none">This claim has no evidence.</string>
+    <string name="claim_detail_add_evidence">Add evidence</string>
+    <string name="claim_detail_back">Back</string>
+    <string name="claim_detail_dismiss">OK</string>
+    <string name="claim_detail_msg_not_found">We could not find this claim.</string>
+    <string name="claim_detail_msg_not_available">This evidence cannot be viewed yet.</string>
+    <string name="claim_detail_msg_failed">We could not open the evidence. Try again.</string>
+    <string name="claim_detail_viewer_close">Close</string>
+    <string name="claim_detail_evidence_hint">Tap a sent item to view it.</string>
+    <!-- HU4.2.3 · Parametric claims -->
+    <string name="claim_type_heavy_rain">Extreme rainfall</string>
+    <string name="claim_type_flight_delay">Flight delay</string>
+    <string name="claim_automatic">Automatic</string>
+    <string name="claim_parametric_product">Parametric insurance</string>
+    <string name="claim_detail_origin">Origin</string>
+    <string name="claim_detail_origin_parametric">Created automatically: an event covered by your policy occurred. You don\'t need to report it or send evidence.</string>
+    <string name="claim_detail_compensation">Compensation</string>
+    <string name="compensation_status_requested">Payment in progress</string>
+    <string name="compensation_status_paid">Paid</string>
+    <string name="compensation_status_unknown">Under review</string>
+    <string name="notification_parametric_title">Automatic claim %1$s</string>
+    <string name="notification_parametric_body">An event covered by your policy occurred. Your compensation was approved and the payment is in progress.</string>
 </resources>

@@ -201,6 +201,17 @@
     <string name="claim_done_policy">Póliza %1$s</string>
     <string name="claim_done_reported_at">Reportado el %1$s</string>
     <string name="claim_done_next">Ahora puedes adjuntar fotos y la ubicación para que lo evaluemos más rápido.</string>
+    <string name="claim_notifications_title">Entérate de los cambios</string>
+    <string name="claim_notifications_body">Activa las notificaciones para conocer las novedades de tu siniestro.</string>
+    <string name="claim_notifications_action">Activar notificaciones</string>
+    <!-- HU4.2.2 · Notificaciones push -->
+    <string name="notification_channel_claims">Siniestros</string>
+    <string name="notification_channel_claims_description">Cambios de estado de tus siniestros.</string>
+    <string name="notification_claim_status_title">Tu siniestro %1$s cambió de estado</string>
+    <string name="notification_claim_status_body">Ahora está: %1$s</string>
+    <string name="notifications_off_title">Notificaciones desactivadas</string>
+    <string name="notifications_off_body">Actívalas para enterarte cuando cambie el estado de tus siniestros.</string>
+    <string name="notifications_off_action">Activar notificaciones</string>
     <string name="claim_add_evidence">Adjuntar evidencia</string>
     <!-- HU4.1.2 · Evidencia y ubicación del siniestro -->
     <string name="evidence_title">Evidencia del siniestro</string>
@@ -320,4 +331,55 @@
     <string name="policy_certificate_pending">El certificado aún no está disponible. Se descargará cuando esté listo y haya conexión.</string>
     <string name="policy_certificate_unavailable_offline">El certificado no se ha guardado en este teléfono. Conéctate a internet para descargarlo.</string>
     <string name="policy_certificate_open_failed">No se pudo abrir el certificado. Instala un visor de PDF e inténtalo de nuevo.</string>
+    <!-- HU4.2.1 · Mis siniestros y detalle -->
+    <string name="home_my_claims">Mis siniestros</string>
+    <string name="my_claims_title">Mis siniestros</string>
+    <string name="my_claims_filter_all">Todas</string>
+    <plurals name="my_claims_count_plural">
+        <item quantity="one">%1$d siniestro</item>
+        <item quantity="many">%1$d siniestros</item>
+        <item quantity="other">%1$d siniestros</item>
+    </plurals>
+    <string name="my_claims_empty">Aún no has reportado siniestros.</string>
+    <string name="my_claims_empty_policy">No hay siniestros de esta póliza.</string>
+    <string name="my_claims_load_more">Ver más</string>
+    <string name="my_claims_reported_on">Reportado el %1$s</string>
+    <string name="my_claims_error_network">Sin conexión. Revisa tu internet e intenta de nuevo.</string>
+    <string name="my_claims_error_service">No pudimos cargar la información. Intenta de nuevo.</string>
+    <string name="claim_status_reported">Reportado</string>
+    <string name="claim_status_in_review">En evaluación</string>
+    <string name="claim_status_approved">Aprobado</string>
+    <string name="claim_status_rejected">Rechazado</string>
+    <string name="claim_status_paid">Pagado</string>
+    <string name="claim_detail_title">Detalle del siniestro</string>
+    <string name="claim_detail_type">Tipo</string>
+    <string name="claim_detail_policy">Póliza</string>
+    <string name="claim_detail_occurred">Ocurrió</string>
+    <string name="claim_detail_reported">Reportado</string>
+    <string name="claim_detail_location">Ubicación</string>
+    <string name="claim_detail_location_value">Adjunta (precisión ±%1$d m)</string>
+    <string name="claim_detail_location_none">Sin ubicación</string>
+    <string name="claim_detail_evidence_title">Evidencias</string>
+    <string name="claim_detail_evidence_none">Este siniestro no tiene evidencias.</string>
+    <string name="claim_detail_add_evidence">Agregar evidencia</string>
+    <string name="claim_detail_back">Volver</string>
+    <string name="claim_detail_dismiss">Entendido</string>
+    <string name="claim_detail_msg_not_found">No encontramos este siniestro.</string>
+    <string name="claim_detail_msg_not_available">Esta evidencia todavía no se puede ver.</string>
+    <string name="claim_detail_msg_failed">No pudimos abrir la evidencia. Intenta de nuevo.</string>
+    <string name="claim_detail_viewer_close">Cerrar</string>
+    <string name="claim_detail_evidence_hint">Toca una evidencia enviada para verla.</string>
+    <!-- HU4.2.3 · Siniestros paramétricos -->
+    <string name="claim_type_heavy_rain">Lluvia extrema</string>
+    <string name="claim_type_flight_delay">Retraso de vuelo</string>
+    <string name="claim_automatic">Automático</string>
+    <string name="claim_parametric_product">Seguro paramétrico</string>
+    <string name="claim_detail_origin">Origen</string>
+    <string name="claim_detail_origin_parametric">Creado automáticamente: ocurrió un evento cubierto por tu póliza. No tienes que reportarlo ni enviar evidencias.</string>
+    <string name="claim_detail_compensation">Compensación</string>
+    <string name="compensation_status_requested">Pago en proceso</string>
+    <string name="compensation_status_paid">Pagada</string>
+    <string name="compensation_status_unknown">En revisión</string>
+    <string name="notification_parametric_title">Siniestro automático %1$s</string>
+    <string name="notification_parametric_body">Ocurrió un evento cubierto por tu póliza. Tu compensación fue aprobada y el pago está en proceso.</string>
 </resources>
